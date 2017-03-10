@@ -34,7 +34,7 @@ public class ProfileServlet extends HttpServlet {
 		int Ylength = key.length();
 		int layers = 0;
 		/* Test the validation of key & message */
-		layers = (int) Math.floor(Math.sqrt(Xlength));
+		layers = (int) Math.floor(Math.sqrt(message.length()));
 		if (Ylength > Xlength || layers == 0) {
 			writer.write(String.format("INVALID"));
 			writer.close();
