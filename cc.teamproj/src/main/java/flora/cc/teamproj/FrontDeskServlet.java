@@ -29,8 +29,6 @@ public class FrontDeskServlet extends HttpServlet {
 
 		String key = request.getParameter("key");
 		String message = request.getParameter("message");
-		key = "1239793247987948712739187492308012309184023849817397189273981723912221";
-		message = "QTGXGTHWEQENWQVKPIRFO";
 		String X = "12389084059184098308123098579283204880956800909293831223134798257496372124879237412193918239183928140";
 		int Xlength = X.length();
 		int Ylength = key.length();
@@ -47,28 +45,31 @@ public class FrontDeskServlet extends HttpServlet {
 			 **/
 			int[] keyX = new int[Xlength];
 			for (int i = 0; i < X.length(); i++) {
-				keyX[i] = Integer.valueOf(X.charAt(i));
+				keyX[i] = Integer.valueOf(X.charAt(i)+"");
 			}
 			int[] keyY = new int[Ylength];
 			for (int i = 0; i < key.length(); i++) {
-				keyY[i] = Integer.valueOf(key.charAt(i));
+				keyY[i] = Integer.valueOf(key.charAt(i)+"");
 			}
-			int[] temp = new int[Ylength];
-			temp = keyY;
-			for (int i = 0; i < Xlength - Ylength; i++) {
-				for (int j = 0; j < Ylength; j++) {
-					temp[j] = (keyX[i + j] + temp[j]) % 10;
-				}
+			int Z;
+			int sum1=0;
+			int sum2=0;
+			for (int i = Ylength-2; i<Xlength-1; i++) {
+				sum1+=keyX[i];
 			}
-			int Z = temp[Ylength - 2] * 10 + temp[Ylength - 1];
+			for (int i = Ylength-1; i<Xlength; i++) {
+				sum2+=keyX[i];
+			}
+			System.out.println(sum1);
+			System.out.println(sum2);
+			
+			Z=(sum1+keyY[Ylength-2])%10*10+(sum2+keyY[Ylength-1])%10;
 			System.out.println(Z);
 			/*
 			 * 2.KeyGen step: minikey K = 1 + Z % 25
 			 */
-			int K = 1 + (temp[Ylength - 2] * 10 + temp[Ylength - 1]) % 25;
-
-			/*
-			 * 3.Spiralize step: ciphertext=message Use the minikey K & to
+			int K = 1 + Z % 25;
+			 /* 3.Spiralize step: ciphertext=message Use the minikey K & to
 			 * cipherText Z to decrypt the message O
 			 */
 
