@@ -19,14 +19,12 @@ import org.json.JSONObject;
 
 public class FrontDeskServlet extends HttpServlet {
 	String TEAMID = "LXFreee";
-	String TEAM_AWS_ACCOUNT_ID = "710468227247";
+	String TEAM_AWS_ACCOUNT_ID = "7104-6822-7247";
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
 			throws ServletException, IOException {
 		PrintWriter writer = response.getWriter();
-		JSONObject result = new JSONObject();
-
 		String key = request.getParameter("key");
 		String message = request.getParameter("message");
 		String X = "12389084059184098308123098579283204880956800909293831223134798257496372124879237412193918239183928140";
@@ -120,13 +118,12 @@ public class FrontDeskServlet extends HttpServlet {
 					sb.append(c);
 				}
 			}
-			
 
 			/* Write response */
 			Date date = new Date();
 			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			writer.write(String.format("returnRes(%s)",
-					TEAMID + "," + TEAM_AWS_ACCOUNT_ID + "\n" + df.format(date) + "\n" + result.toString()));
+			String result = TEAMID + "," + TEAM_AWS_ACCOUNT_ID + "\n" + df.format(date) + "\n" + sb.toString();
+			writer.write(result);
 			writer.close();
 		}
 	}
