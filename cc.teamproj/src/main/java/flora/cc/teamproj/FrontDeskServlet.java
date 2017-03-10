@@ -17,14 +17,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONObject;
 
-public class ProfileServlet extends HttpServlet {
+public class FrontDeskServlet extends HttpServlet {
 	String TEAMID = "LXFreee";
 	String TEAM_AWS_ACCOUNT_ID = "710468227247";
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
 			throws ServletException, IOException {
-		PrintWriter writer = null;
+		PrintWriter writer = response.getWriter();
 		JSONObject result = new JSONObject();
 
 		String key = request.getParameter("key");
@@ -70,6 +70,51 @@ public class ProfileServlet extends HttpServlet {
 			 * 3.Spiralize step: ciphertext=message Use the minikey K & to
 			 * cipherText Z to decrypt the message O
 			 */
+			
+			// initialize the matrix with the message
+			StringBuilder sb = new StringBuilder();
+			char matrix[][] = new char[layers][layers];
+			int x[] = {1,0,-1};
+			int y[] = {0,1,-1};
+			int col = layers;
+			int row = layers;
+			int xStart = 0;
+			int yStart = 0;
+			int direction = 0;
+			int addedCol = 0;
+			int addedRow = 0;
+			int candidateCells = 0;
+			int addedCells = 0;
+			for(int i = 0; i < message.length(); i++) {
+				if(x[direction] == 0) {
+					candidateCells = row - addedRow;
+				} else {
+					candidateCells = col - addedCol;
+				}
+				if(candidateCells < 0) {
+					break;
+				}
+				matrix[xStart][yStart] = message.charAt(i);
+				addedCells++;
+				if(addedCells == candidateCells) {
+					addedRow += 1;
+					addedCol += 1;
+					direction = (direction + 1) % 3;
+					addedCells = 0;
+				}
+				xStart += x[direction];
+				yStart += y[direction];
+			}
+			
+			// Read message from matrix by original order and decryption
+			for(int i = layers-1; i >= 0; i--) {
+				for(int j = i; j < layers; j++) {
+					char c = matrix[j][i];
+					c = (char) ((c + K) % 65 + 65);
+					sb.append(c);
+				}
+			}
+			
 
 			/* Write response */
 			Date date = new Date();
