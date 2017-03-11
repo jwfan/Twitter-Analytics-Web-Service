@@ -1,11 +1,6 @@
 package lxfree.query1.autoscaling;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,8 +39,6 @@ import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.IpPermission;
 import com.amazonaws.services.ec2.model.IpRange;
 import com.amazonaws.services.ec2.model.Placement;
-import com.amazonaws.services.ec2.model.RequestSpotInstancesRequest;
-import com.amazonaws.services.ec2.model.RequestSpotInstancesResult;
 import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.services.ec2.model.RunInstancesRequest;
 import com.amazonaws.services.ec2.model.RunInstancesResult;
@@ -270,12 +263,11 @@ public class UndertowStartUp {
 
     public static String launchInstance(String imageID, String securityGroup) throws InterruptedException {
         //Launch instance
-		RequestSpotInstancesRequest runInstancesRequest =
-				   new RequestSpotInstancesRequest();
+		RunInstancesRequest runInstancesRequest =
+				   new RunInstancesRequest();
 		Placement place = new Placement();
         place.setAvailabilityZone(AV_ZONE);
-		runInstancesRequest.setSpotPrice("0.016");
-		runInstancesRequest.setInstanceCount(Integer.valueOf(1));
+		
 		runInstancesRequest.withImageId(imageID)
 		                   .withInstanceType(INSTANCE_TYPE)
 		                   .withMinCount(1)
@@ -284,7 +276,7 @@ public class UndertowStartUp {
 		                   .withSecurityGroups(securityGroup)
 		                   .setPlacement(place);
 							
-		RequestSpotInstancesRequest result = ec2.requestSpotInstances(runInstancesRequest);
+		RunInstancesResult result = ec2.runInstances(runInstancesRequest);
 
         //Tag instance
         Instance instance = result.getReservation().getInstances().get(0);
@@ -320,35 +312,5 @@ public class UndertowStartUp {
 
     }
 
-    private static String sendRequest(String urlString) throws MalformedURLException, InterruptedException {
-        String response = "";
-        URL url = new URL(urlString);
-        int code = 0;
-        HttpURLConnection connection = null;
-        while (code != 200) {
-            try {
-                connection = (HttpURLConnection) url.openConnection();
-                code = connection.getResponseCode();
-                if (code != 200) {
-                    Thread.sleep(10000);
-                }
-            } catch (IOException e) {
-                continue;
-            }
-        }
 
-        BufferedReader in = null;
-        try {
-            in = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
-            String str;
-            while ((str = in.readLine()) != null) {
-                response += str;
-            }
-            in.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return response;
-    }
 }
