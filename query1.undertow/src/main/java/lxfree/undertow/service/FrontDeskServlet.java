@@ -52,11 +52,9 @@ public class FrontDeskServlet extends HttpServlet {
 			for (int i = Ylength-1; i<Xlength; i++) {
 				sum2+=keyX[i];
 			}
-			System.out.println(sum1);
-			System.out.println(sum2);
 			
 			Z=(sum1+keyY[Ylength-2])%10*10+(sum2+keyY[Ylength-1])%10;
-			System.out.println(Z);
+
 			/*
 			 * 2.KeyGen step: minikey K = 1 + Z % 25
 			 */
@@ -107,7 +105,7 @@ public class FrontDeskServlet extends HttpServlet {
 					if(c - K >= 65) {
 						c = (char) (c- K);
 					} else{
-						c = (char) (90 - (K- (c - 65)));
+						c = (char) (90 - (K- (c - 64)));
 					}
 					sb.append(c);
 				}
