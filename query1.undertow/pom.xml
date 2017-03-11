@@ -46,7 +46,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<mainClass>lxfree.undertow.service.UndertowServer</mainClass>
+					<mainClass>lxfree.query.undertow.UndertowServer</mainClass>
 				</configuration>
 			</plugin>
 			<plugin>
