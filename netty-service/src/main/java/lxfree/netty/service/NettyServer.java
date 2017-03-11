@@ -14,7 +14,7 @@ import io.netty.handler.ssl.util.SelfSignedCertificate;
 
 public class NettyServer {
     static final boolean SSL = System.getProperty("ssl") != null;
-    static final int PORT = Integer.parseInt(System.getProperty("port", SSL? "8443" : "8080"));
+    static final int PORT = Integer.parseInt(System.getProperty("port", SSL? "443" : "80"));
 
     public static void main(String[] args) throws Exception {
         // Configure SSL.

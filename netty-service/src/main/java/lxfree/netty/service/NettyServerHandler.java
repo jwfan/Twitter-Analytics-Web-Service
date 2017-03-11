@@ -27,9 +27,6 @@ public class NettyServerHandler  extends ChannelInboundHandlerAdapter {
 	private static final String TEAM_AWS_ACCOUNT_ID = "7104-6822-7247";
 	private static final String X = "12389084059184098308123098579283204880956800909293831223134798257496372124879237412193918239183928140";
 
-	// private static final byte[] CONTENT = { 'H', 'e', 'l', 'l', 'o', ' ',
-	// 'W', 'o', 'r', 'l', 'd' };
-
 	@Override
 	public void channelReadComplete(ChannelHandlerContext ctx) {
 		ctx.flush();
