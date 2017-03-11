@@ -142,7 +142,7 @@ public class NettyServerHandler  extends ChannelInboundHandlerAdapter {
 						if(c - K >= 65) {
 							c = (char) (c- K);
 						} else{
-							c = (char) (90 - (K- (c - 65)));
+							c = (char) (90 - (K- (c - 64)));
 						}
 						sb.append(c);
 					}
@@ -151,7 +151,8 @@ public class NettyServerHandler  extends ChannelInboundHandlerAdapter {
 				/* Write response */
 				Date date = new Date();
 				SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-				result = TEAMID + "," + TEAM_AWS_ACCOUNT_ID + "\n" + df.format(date) + "\n" + sb.toString();
+				result = TEAMID + "," + TEAM_AWS_ACCOUNT_ID + "\n" + df.format(date) + "\n" + sb.toString() + "\n";
+				System.out.println(result);
 			}
 
 			byte[] CONTENT = result.getBytes();
