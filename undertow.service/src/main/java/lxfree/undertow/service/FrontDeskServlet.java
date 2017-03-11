@@ -27,7 +27,8 @@ public class FrontDeskServlet extends HttpServlet {
 		/* Test the validation of key & message */
 		layers = (int) Math.floor(Math.sqrt(message.length()*2));
 		if (Ylength > Xlength || layers == 0 || layers*(layers+1) != message.length() *2) {
-			System.out.println("INVALID");
+			writer.write(String.format("INVALID"));
+			writer.close();
 		} else {
 			/*
 			 * 1.Caesarify: step secretKey X =
