@@ -23,12 +23,8 @@
 						</goals>
 					</execution>
 				</executions>
-				<configuration>
-					<mainClass>lxfree.netty-service.NettyServer</mainClass>
-				</configuration>
 			</plugin>
 			<plugin>
-				<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>3.0.0</version>
 				<executions>
