@@ -36,7 +36,7 @@ public class UndertowServer {
 			HttpHandler servletHandler = manager.start();
 			PathHandler path = Handlers.path(Handlers.redirect(PATH)).addPrefixPath(PATH, servletHandler);
 
-			Undertow server = Undertow.builder().addHttpListener(8080, "localhost").setHandler(path).build();
+			Undertow server = Undertow.builder().addHttpListener(80, "0.0.0.0").setHandler(path).build();
 			server.start();
 		} catch (ServletException e) {
 			throw new RuntimeException(e);

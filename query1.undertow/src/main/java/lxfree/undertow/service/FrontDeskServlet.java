@@ -115,8 +115,10 @@ public class FrontDeskServlet extends HttpServlet {
 
 			/* Write response */
 			Date date = new Date();
+			response.setStatus(200);
+			response.setContentType("text/plain;charset=UTF-8");
 			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			String result = TEAMID + "," + TEAM_AWS_ACCOUNT_ID + "\n" + df.format(date) + "\n" + sb.toString();
+			String result = TEAMID + "," + TEAM_AWS_ACCOUNT_ID + "\n" + df.format(date) + "\n" + sb.toString()+"\n";
 			writer.write(result);
 			writer.close();
 		}
