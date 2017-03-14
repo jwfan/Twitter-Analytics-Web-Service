@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public final class p1q3_Reducer {
+public final class p1q2_Reducer {
 	static List<String> outList = new ArrayList<String>();
 
 	public static void main(String[] args) {
@@ -50,11 +50,12 @@ public final class p1q3_Reducer {
 							}
 						}
 					} else {
-						String output = lasthashid + "\t";
+						String output = lasthashid + "\t" + "{";
 						for (String a : keyWords.keySet()) {
-							output += a + ":" + keyWords.get(a) + ",";
+							output += "\"" + a + "\":" + keyWords.get(a) + ",";
 						}
-						System.out.println(output.substring(0, output.length() - 1));
+						output = output.substring(0, output.length() - 1) + "}";
+						System.out.println(output);
 						keyWords.clear();
 						for (String a : keyText) {
 							keyWords.put(a, 1);
@@ -66,11 +67,12 @@ public final class p1q3_Reducer {
 					lastkeyText = keyText;
 				}
 			}
-			String output = lasthashid + "\t";
+			String output = lasthashid + "\t" + "{";
 			for (String a : keyWords.keySet()) {
-				output += a + ":" + keyWords.get(a) + ",";
+				output += "\"" + a + "\":" + keyWords.get(a) + ",";
 			}
-			System.out.println(output.substring(0, output.length() - 1));
+			output = output.substring(0, output.length() - 1) + "}";
+			System.out.println(output);
 			keyWords.clear();
 		} catch (IOException e) {
 			// TODO: handle exception
@@ -84,6 +86,5 @@ public final class p1q3_Reducer {
 				}
 			}
 		}
-
 	}
 }
