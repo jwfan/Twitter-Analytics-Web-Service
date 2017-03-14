@@ -47,13 +47,11 @@ public class NettyServerHandler  extends ChannelInboundHandlerAdapter {
 			Matcher matcher1 = pattern1.matcher(requestStr);
 			if (matcher1.find()) {
 				key = requestStr.substring(matcher1.start() + 4, matcher1.end());
-				System.out.println("key: " + key);
 			}
 			Pattern pattern2 = Pattern.compile("message=\\w+");
 			Matcher matcher2 = pattern2.matcher(requestStr);
 			if (matcher2.find()) {
 				message = requestStr.substring(matcher2.start() + 8);
-				System.out.println("cipher: " + message);
 			}
 			
 			/* decipher */
@@ -87,11 +85,8 @@ public class NettyServerHandler  extends ChannelInboundHandlerAdapter {
 				for (int i = Ylength-1; i<Xlength; i++) {
 					sum2+=keyX[i];
 				}
-				System.out.println(sum1);
-				System.out.println(sum2);
 				
 				Z=(sum1+keyY[Ylength-2])%10*10+(sum2+keyY[Ylength-1])%10;
-				System.out.println(Z);
 				/*
 				 * 2.KeyGen step: minikey K = 1 + Z % 25
 				 */
@@ -142,7 +137,7 @@ public class NettyServerHandler  extends ChannelInboundHandlerAdapter {
 						if(c - K >= 65) {
 							c = (char) (c- K);
 						} else{
-							c = (char) (90 - (K- (c - 65)));
+							c = (char) (90 - (K- (c - 64)));
 						}
 						sb.append(c);
 					}
@@ -151,7 +146,7 @@ public class NettyServerHandler  extends ChannelInboundHandlerAdapter {
 				/* Write response */
 				Date date = new Date();
 				SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-				result = TEAMID + "," + TEAM_AWS_ACCOUNT_ID + "\n" + df.format(date) + "\n" + sb.toString();
+				result = TEAMID + "," + TEAM_AWS_ACCOUNT_ID + "\n" + df.format(date) + "\n" + sb.toString() + "\n";
 			}
 
 			byte[] CONTENT = result.getBytes();
