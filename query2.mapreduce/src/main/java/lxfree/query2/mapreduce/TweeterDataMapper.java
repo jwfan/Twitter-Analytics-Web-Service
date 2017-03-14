@@ -11,6 +11,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,6 +26,7 @@ import org.json.JSONObject;
 public class TweeterDataMapper {
 	
 	private final static String SHORTURL_REGEX = "(https?|ftp)://[^\\t\\r\\n /$.?#][^\\t\\r\\n ]*";
+	private final static String LETTER_REGEX = "\\p{L}+";
 	private final static String[] LANG = {"ar","en", "fr", "in", "pt", "es", "tr"};
 	private static Map<String, Integer> tIds = new HashMap<String, Integer>();
 	
@@ -31,13 +34,13 @@ public class TweeterDataMapper {
 		BufferedReader br = null;
 		PrintWriter out = null;
 //		String fileName = System.getenv("mapreduce_map_input_file");
-		File file = new File("part-r-00000");
-		File output = new File("output");
+//		File file = new File("part-r-00000");
+//		File output = new File("output");
 		try{
-			br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
-			out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8), true);
-//			br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
-//			out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
+//			br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+//			out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8), true);
+			br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
+			out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
 			String line;
 			while((line = br.readLine()) != null) {
 				
@@ -95,6 +98,7 @@ public class TweeterDataMapper {
 					if("".equals(text)) {
 						continue;
 					}
+					
 					//lang field is missing or empty
 					lang = jo.getString("lang");
 					if("".equals(lang)) {
@@ -135,20 +139,20 @@ public class TweeterDataMapper {
 					tIds.put(tid, 1);
 				}
 				
-				//print out valid data
-				JSONObject res = new JSONObject();
-				JSONArray hasharr = new JSONArray();
-				for(int i = 0; i < hashtags.length(); i++) {
-//					out.write(hashtags.getJSONObject(i).getString("text") + "\t" + uid + "\t" + text + "\n");
-//					hasharr.put(hashtags.getJSONObject(i).getString("text"));
+				//split key words
+				StringBuilder keyWords = new StringBuilder();
+				Pattern p = Pattern.compile(LETTER_REGEX);
+				Matcher m = p.matcher(text);
+				while(m.find()) {
+					keyWords.append(m.group()).append(",");
 				}
-//				res.put("hashtag_text", hasharr);
-//				res.put("text", text);
-//				res.put("lang", lang);
-//				res.put("userid", uid);
-//				res.put("tid", tid);
-//				out.write(res.toString()+ " ");
-//				out.write(tid + "\t" + uid  + "\t" + "\n");
+				
+				//print out valid data
+				for(int i = 0; i < hashtags.length(); i++) {
+					String hashText = hashtags.getJSONObject(i).getString("text");
+					out.write(hashText + "#" + uid  + "\t" + keyWords.substring(0, keyWords.length() - 1) + "\n");
+				}
+				
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
