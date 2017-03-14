@@ -1,4 +1,4 @@
-package Lxfreee.teamProj_p1q3;
+package Lxfreee.query2.reducer;
 
 import java.io.BufferedReader;
 import java.io.File;
