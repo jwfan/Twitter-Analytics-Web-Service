@@ -34,10 +34,10 @@ public class Decipher {
 					if(ch<65 || (ch>90 && ch<97) || ch>122){
 						// if the character is not a letter
 						builder.append(ch);
-					}else if(ch>=65 && ch<=98){
+					}else if(ch>=65 && ch<=90){
 						// if the character is upper class
 						char chROT=(char)(ch+13);
-						if(chROT>98)
+						if(chROT>90)
 							chROT-=26;
 						builder.append(chROT);
 					}else{

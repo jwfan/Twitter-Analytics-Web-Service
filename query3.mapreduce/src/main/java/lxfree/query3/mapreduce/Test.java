@@ -27,16 +27,21 @@ public class Test {
 			while((line = br.readLine())!=null) {
 				JSONObject jo =  new JSONObject(line);
 				String tid = jo.getString("tweet_id");
-				String score = jo.getString("impactScore");
-				maps.put(tid, score);
+				//String score = jo.getString("impactScore"); 
+				//maps.put(tid, score);
+				String censor=jo.getString("censored_text");
+				maps.put(tid, censor);
 			}
 			br.close();
 			br = new BufferedReader(new InputStreamReader(new FileInputStream(f1), StandardCharsets.UTF_8));
 			while((line = br.readLine())!=null) {
 				String tid = line.split("\t")[0];
-				String score = line.split("\t")[4];
-				if(!maps.containsKey(tid) || !maps.get(tid).equals(score)) {
+				//String score = line.split("\t")[4];
+				String censor = line.split("\t")[3];
+				if(!maps.containsKey(tid) || !maps.get(tid).equals(censor)) {
 					System.out.println(tid);
+					System.out.println("ref:\t" + maps.get(tid));
+					System.out.println("out:\t" + censor);
 				}
 			}
 			

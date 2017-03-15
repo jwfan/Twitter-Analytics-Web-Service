@@ -30,10 +30,12 @@ public class TweeterDataMapper {
 	private final static String SHORTURL_REGEX = "(https?|ftp)://[^\\t\\r\\n /$.?#][^\\t\\r\\n ]*";
 	private final static Pattern NO_LETTER_REGEX = Pattern.compile("['\\-0-9]+");
 	private final static Pattern LETTER_REGEX = Pattern.compile("[A-Za-z0-9'\\-]+");
+	private final static Pattern CENSOR_LETTER_REGEX=Pattern.compile("[A-Za-z0-9]+");
 	private final static String LANG = "en";
 	private static Map<String, Integer> tIds = new HashMap<String, Integer>();
 	private static Map<String, Integer> countMap = new HashMap<String, Integer>();
 	private static Map<String, Integer> stopWords = new HashMap<String, Integer>();
+	private static Map<String, Integer> bannedWords = new HashMap<String, Integer>();
 
 	public static void main(String[] args) {
 		BufferedReader br = null;
@@ -63,6 +65,29 @@ public class TweeterDataMapper {
 				}
 			}
 		}
+		 // Load banned words which need to be censored
+		if (bannedWords.size() == 0) {
+			InputStream bannedfile = TweeterDataMapper.class.getResourceAsStream("/banned_words");
+			BufferedReader bannedbr = null;
+			try {
+				bannedbr = new BufferedReader(new InputStreamReader(bannedfile, StandardCharsets.UTF_8));
+				String line = null;
+				while ((line = bannedbr.readLine()) != null) {
+					bannedWords.put(line.toLowerCase(), 1);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				if (bannedbr != null) {
+					try {
+						bannedbr.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		
 		try {
 			 br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
 			 out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8), true);
@@ -191,7 +216,20 @@ public class TweeterDataMapper {
 				}
 				
 				// censor text
-				
+				Matcher censorWordMatcher=CENSOR_LETTER_REGEX.matcher(text);
+				group="";
+				while(censorWordMatcher.find()){
+					group=censorWordMatcher.group().toLowerCase();
+					if(bannedWords.containsKey(group)){
+						// if banned words are found
+						int start=censorWordMatcher.start()+1;
+						int end=censorWordMatcher.end()-1;
+						String censor=new String();
+						for(int i=start;i<end;i++)
+							censor+="*";
+						text=text.substring(0, start) + censor + text.substring(end);
+					}
+				}
 				
 				text = text.replaceAll("\n", "\\\\n");
 				text = text.replaceAll("\r", "\\\\r");
