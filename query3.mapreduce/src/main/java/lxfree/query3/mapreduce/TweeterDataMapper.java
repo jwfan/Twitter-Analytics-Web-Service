@@ -26,9 +26,11 @@ import org.json.JSONObject;
 public class TweeterDataMapper {
 	
 	private final static String SHORTURL_REGEX = "(https?|ftp)://[^\\t\\r\\n /$.?#][^\\t\\r\\n ]*";
-	private final static String LETTER_REGEX = "\\p{L}+";
+	private final static Pattern NO_LETTER_REGEX = Pattern.compile("['\\-0-9]+");
+	private final static Pattern LETTER_REGEX = Pattern.compile("[A-Za-z(0-9'\\-)?]+");
 	private final static String LANG = "en";
 	private static Map<String, Integer> tIds = new HashMap<String, Integer>();
+	private static Map<String, Integer> countMap = new HashMap<String, Integer>();
 	
 	public static void main(String[] args) {
 		BufferedReader br = null;
@@ -148,12 +150,21 @@ public class TweeterDataMapper {
 					tIds.put(tid, 1);
 				}
 				
-				//split key words
+				//split key words and calculate the frequency
 				StringBuilder keyWords = new StringBuilder();
-				Pattern p = Pattern.compile(LETTER_REGEX);
-				Matcher m = p.matcher(shortText);
-				while(m.find()) {
-					keyWords.append(m.group()).append(",");
+				Matcher letterMatcher = LETTER_REGEX.matcher(shortText);
+				String group = "";
+				countMap = new HashMap<String, Integer>();
+				while(letterMatcher.find()) {
+					group = letterMatcher.group();
+					if(!NO_LETTER_REGEX.matcher(group).matches()) {
+						keyWords.append(letterMatcher.group()).append(",");
+						if(countMap.containsKey(group)) {
+							countMap.put(group, countMap.get(group)+1);
+						} else {
+							countMap.put(group, 1);
+						}
+					}
 				}
 				if(keyWords.length() == 0) {
 					continue;
