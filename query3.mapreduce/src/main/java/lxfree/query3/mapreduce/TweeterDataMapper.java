@@ -31,7 +31,7 @@ public class TweeterDataMapper {
 
 	private final static String SHORTURL_REGEX = "(https?|ftp)://[^\\t\\r\\n /$.?#][^\\t\\r\\n ]*";
 	private final static Pattern NO_LETTER_REGEX = Pattern.compile("['\\-0-9]+");
-	private final static Pattern LETTER_REGEX = Pattern.compile("[A-Za-z(0-9'\\-)?]+");
+	private final static Pattern LETTER_REGEX = Pattern.compile("[A-Za-z0-9'\\-?]+");
 	private final static String LANG = "en";
 	private static Map<String, Integer> tIds = new HashMap<String, Integer>();
 	private static Map<String, Integer> countMap = new HashMap<String, Integer>();
@@ -41,8 +41,9 @@ public class TweeterDataMapper {
 		BufferedReader br = null;
 		PrintWriter out = null;
 		// String fileName = System.getenv("mapreduce_map_input_file");
-		// File file = new File("part-r-00000");
-		// File output = new File("output");
+		 File file = new File("part-r-00000");
+		 File output = new File("output");
+		 // Load stop words
 		if (stopWords.size() == 0) {
 			InputStream stopfile = TweeterDataMapper.class.getResourceAsStream("/stopwords.txt");
 			BufferedReader stopbr = null;
@@ -65,14 +66,10 @@ public class TweeterDataMapper {
 			}
 		}
 		try {
-			// br = new BufferedReader(new InputStreamReader(new
-			// FileInputStream(file), StandardCharsets.UTF_8));
-			// out = new PrintWriter(new OutputStreamWriter(new
-			// FileOutputStream(output), StandardCharsets.UTF_8), true);
-			br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
-			out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
-
-			// Load stop words
+			 br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+			 out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8), true);
+//			br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
+//			out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
 
 			String line;
 			while ((line = br.readLine()) != null) {
@@ -202,14 +199,20 @@ public class TweeterDataMapper {
 
 				// calculate impact score
 				int impact_score = EWC * (favorite_count + retweet_count + followers_count);
-				if (impact_score < 0)
-					impact_score = 0;
+				if (impact_score < 0) {
+					impact_score = 0;					
+				}
+				
+				// censor text
+				
+				
+				text = text.replaceAll("\n", "\\n");
 				// print out valid data
 				String wordFreq = "";
 				for (String x : countMap.keySet()) {
 					wordFreq += "\"" + x + "\":" + countMap.get(x) + ",";
 				}
-				out.write(tid + "\t" + uid + "\t" + time + "\t" + impact_score + "\t{"
+				out.write(tid + "\t" + uid + "\t" + time + "\t" + text + "\t" + impact_score + "\t{"
 						+ wordFreq.substring(0, wordFreq.length() - 1) + "}\n");
 
 			}
