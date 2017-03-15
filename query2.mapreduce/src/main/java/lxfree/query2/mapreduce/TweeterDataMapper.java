@@ -2,6 +2,7 @@ package lxfree.query2.mapreduce;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -29,6 +30,7 @@ public class TweeterDataMapper {
 	private final static String LETTER_REGEX = "\\p{L}+";
 	private final static String[] LANG = {"ar","en", "fr", "in", "pt", "es", "tr"};
 	private static Map<String, Integer> tIds = new HashMap<String, Integer>();
+	private static Map<String, Integer> stopWords = new HashMap<String, Integer>();
 	
 	public static void main(String[] args) {
 		BufferedReader br = null;
@@ -36,6 +38,30 @@ public class TweeterDataMapper {
 //		String fileName = System.getenv("mapreduce_map_input_file");
 //		File file = new File("part-r-00000");
 //		File output = new File("output");
+		
+		if(stopWords.size() == 0) {
+			File stopfile = new File("src/main/java/stopwords.txt");
+			BufferedReader stopbr = null;
+			try {
+				stopbr = new BufferedReader(new InputStreamReader(new FileInputStream(stopfile), StandardCharsets.UTF_8));
+				String l = null;
+				while((l=stopbr.readLine())!=null) {
+					stopWords.put(l.toLowerCase(), 1);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				if(stopbr!=null) {
+					try {
+						stopbr.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		
+		
 		try{
 //			br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
 //			out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8), true);
@@ -143,8 +169,12 @@ public class TweeterDataMapper {
 				StringBuilder keyWords = new StringBuilder();
 				Pattern p = Pattern.compile(LETTER_REGEX);
 				Matcher m = p.matcher(text);
+				String keyword;
 				while(m.find()) {
-					keyWords.append(m.group()).append(",");
+					keyword = m.group().toLowerCase();
+					if(!stopWords.containsKey(keyword)) {
+						keyWords.append(keyword).append(",");						
+					}
 				}
 				if(keyWords.length() == 0) {
 					continue;
