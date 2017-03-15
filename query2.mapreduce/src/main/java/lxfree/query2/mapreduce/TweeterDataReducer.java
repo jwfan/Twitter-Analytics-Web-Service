@@ -10,13 +10,10 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public final class TweeterDataReducer {
-	static List<String> outList = new ArrayList<String>();
 
 	public static void main(String[] args) {
 		BufferedReader br = null;
@@ -88,12 +85,15 @@ public final class TweeterDataReducer {
 					lastkeyText = keyText;
 				}
 			}
-			String output = id + "\t" + hashidArr[0] + "\t" + hashidArr[1] + "\t" + "{";
-			for (String a : keyWords.keySet()) {
-				output += "\"" + a + "\":" + keyWords.get(a) + ",";
+			if(lasthashid != null) {
+				hashidArr = lasthashid.split("#");
+				String output = id + "\t" + hashidArr[0] + "\t" + hashidArr[1] + "\t" + "{";
+				for (String a : keyWords.keySet()) {
+					output += "\"" + a + "\":" + keyWords.get(a) + ",";
+				}
+				output = output.substring(0, output.length() - 1) + "}";
+				out.write(output + "\n");				
 			}
-			output = output.substring(0, output.length() - 1) + "}";
-			out.write(output + "\n");
 			keyWords.clear();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -101,9 +101,11 @@ public final class TweeterDataReducer {
 			if (br != null) {
 				try {
 					br.close();
-					out.close();
 				} catch (IOException ee) {
 					ee.printStackTrace();
+				}
+				if(out != null) {
+					out.close();
 				}
 			}
 		}

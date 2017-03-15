@@ -154,7 +154,7 @@ public class TweeterDataMapper {
 				}
 				
 			}
-		} catch(Exception e) {
+		} catch(IOException e) {
 			e.printStackTrace();
 		} 
 		finally {
