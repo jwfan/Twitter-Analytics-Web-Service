@@ -10,13 +10,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -31,7 +29,7 @@ public class TweeterDataMapper {
 
 	private final static String SHORTURL_REGEX = "(https?|ftp)://[^\\t\\r\\n /$.?#][^\\t\\r\\n ]*";
 	private final static Pattern NO_LETTER_REGEX = Pattern.compile("['\\-0-9]+");
-	private final static Pattern LETTER_REGEX = Pattern.compile("[A-Za-z0-9'\\-?]+");
+	private final static Pattern LETTER_REGEX = Pattern.compile("[A-Za-z0-9'\\-]+");
 	private final static String LANG = "en";
 	private static Map<String, Integer> tIds = new HashMap<String, Integer>();
 	private static Map<String, Integer> countMap = new HashMap<String, Integer>();
@@ -138,7 +136,7 @@ public class TweeterDataMapper {
 
 					// lang field is missing or not equal to en
 					lang = jo.getString("lang");
-					if ("".equals(lang)) {
+					if (!LANG.equals(lang)) {
 						continue;
 					}
 
@@ -152,20 +150,12 @@ public class TweeterDataMapper {
 				}
 
 				/*
-				 * 2. Filter out invalid Language of Tweets
-				 */
-
-				if (!LANG.equals(lang)) {
-					continue;
-				}
-
-				/*
-				 * 3. Remove Shortened URLs
+				 * 2. Remove Shortened URLs
 				 */
 				String shortText = text.replaceAll(SHORTURL_REGEX, "");
 
 				/*
-				 * 4. Remove duplicated tweet id
+				 * 3. Remove duplicated tweet id
 				 */
 				if (tIds.containsKey(tid)) {
 					continue;
@@ -175,15 +165,15 @@ public class TweeterDataMapper {
 
 				// split key words and calculate the frequency
 				int EWC = 0;
-				StringBuilder keyWords = new StringBuilder();
+				int totalWrods = 0;
 				Matcher letterMatcher = LETTER_REGEX.matcher(shortText);
 				String group = "";
 				countMap = new HashMap<String, Integer>();
 				while (letterMatcher.find()) {
 					group = letterMatcher.group().toLowerCase();
 					if (!NO_LETTER_REGEX.matcher(group).matches()) {
+						totalWrods++;
 						if (!stopWords.containsKey(group)) {
-							keyWords.append(group).append(",");
 							EWC++;
 							if (countMap.containsKey(group)) {
 								countMap.put(group, countMap.get(group) + 1);
@@ -192,9 +182,6 @@ public class TweeterDataMapper {
 							}
 						}
 					}
-				}
-				if (keyWords.length() == 0) {
-					continue;
 				}
 
 				// calculate impact score
@@ -206,14 +193,18 @@ public class TweeterDataMapper {
 				// censor text
 				
 				
-				text = text.replaceAll("\n", "\\n");
+				text = text.replaceAll("\n", "\\\\n");
+				text = text.replaceAll("\r", "\\\\r");
 				// print out valid data
 				String wordFreq = "";
 				for (String x : countMap.keySet()) {
 					wordFreq += "\"" + x + "\":" + countMap.get(x) + ",";
 				}
+				if(wordFreq.length() == 0) {
+					wordFreq = ",";
+				}
 				out.write(tid + "\t" + uid + "\t" + time + "\t" + text + "\t" + impact_score + "\t{"
-						+ wordFreq.substring(0, wordFreq.length() - 1) + "}\n");
+						+ wordFreq.substring(0, wordFreq.length() - 1) + "}" + "\t" + totalWrods + "\n");
 
 			}
 		} catch (IOException e) {
