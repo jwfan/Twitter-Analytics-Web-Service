@@ -27,7 +27,7 @@ public class TweeterDataMapper {
 	
 	private final static String SHORTURL_REGEX = "(https?|ftp)://[^\\t\\r\\n /$.?#][^\\t\\r\\n ]*";
 	private final static String LETTER_REGEX = "\\p{L}+";
-	private final static String[] LANG = {"ar","en", "fr", "in", "pt", "es", "tr"};
+	private final static String LANG = "en";
 	private static Map<String, Integer> tIds = new HashMap<String, Integer>();
 	
 	public static void main(String[] args) {
@@ -41,6 +41,11 @@ public class TweeterDataMapper {
 //			out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8), true);
 			br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
 			out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
+			
+			//Load stop words
+			
+			
+			
 			String line;
 			while((line = br.readLine()) != null) {
 				
@@ -53,7 +58,10 @@ public class TweeterDataMapper {
 				String date;
 				String lang;
 				String text;
-				JSONArray hashtags;
+				long time;
+				int favorite_count;
+				int retweet_count;
+				int followers_count;
 				try{
 					//Convert to json object
 					jo = new JSONObject(line);
@@ -91,6 +99,9 @@ public class TweeterDataMapper {
 					date = jo.getString("created_at");
 					if("".equals(date)){
 						continue;
+					} else {
+						// change date to unix timestamp
+						time = System.currentTimeMillis() / 1000L;
 					}
 					
 					//text field is missing or empty
@@ -99,18 +110,16 @@ public class TweeterDataMapper {
 						continue;
 					}
 					
-					//lang field is missing or empty
+					//lang field is missing or not equal to en
 					lang = jo.getString("lang");
-					if("".equals(lang)) {
+					if(!LANG.equals(lang)) {
 						continue;
 					}
 					
-					//hashtag text (stated above) is missing or empty
-					JSONObject entities = jo.getJSONObject("entities");
-					hashtags = entities.getJSONArray("hashtags");
-					if(hashtags.length() == 0) {
-						continue;
-					}
+					//get favorite, retweet and followers count
+					favorite_count = jo.getInt("favorite_count");
+					retweet_count = jo.getInt("retweet_count");
+					followers_count = user.getInt("followers_count");
 					
 					
 				} catch(JSONException e) {
@@ -121,14 +130,14 @@ public class TweeterDataMapper {
 				 * 2. Filter out invalid Language of Tweets
 				 */
 					
-				if(!Arrays.asList(LANG).contains(lang)) {
+				if(!LANG.equals(lang)) {
 					continue;
 				}
 					
 				/*
 				 * 3. Remove Shortened URLs
 				 */
-				text = text.replaceAll(SHORTURL_REGEX, "");
+				String shortText = text.replaceAll(SHORTURL_REGEX, "");
 				
 				/*
 				 * 4. Remove duplicated tweet id
@@ -142,18 +151,19 @@ public class TweeterDataMapper {
 				//split key words
 				StringBuilder keyWords = new StringBuilder();
 				Pattern p = Pattern.compile(LETTER_REGEX);
-				Matcher m = p.matcher(text);
+				Matcher m = p.matcher(shortText);
 				while(m.find()) {
 					keyWords.append(m.group()).append(",");
 				}
 				if(keyWords.length() == 0) {
 					continue;
 				}
+				
+				// calculate impact score
+				
+				
 				//print out valid data
-				for(int i = 0; i < hashtags.length(); i++) {
-					String hashText = hashtags.getJSONObject(i).getString("text");
-					out.write(hashText + "#" + uid  + "\t" + keyWords.substring(0, keyWords.length() - 1) + "\n");
-				}
+				
 				
 			}
 		} catch(IOException e) {
