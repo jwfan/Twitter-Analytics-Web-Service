@@ -156,9 +156,9 @@ public class TweeterDataMapper {
 				String group = "";
 				countMap = new HashMap<String, Integer>();
 				while(letterMatcher.find()) {
-					group = letterMatcher.group();
+					group = letterMatcher.group().toLowerCase();
 					if(!NO_LETTER_REGEX.matcher(group).matches()) {
-						keyWords.append(letterMatcher.group()).append(",");
+						keyWords.append(group).append(",");
 						if(countMap.containsKey(group)) {
 							countMap.put(group, countMap.get(group)+1);
 						} else {
