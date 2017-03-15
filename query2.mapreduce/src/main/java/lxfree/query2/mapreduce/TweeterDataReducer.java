@@ -18,51 +18,37 @@ public final class TweeterDataReducer {
 	public static void main(String[] args) {
 		BufferedReader br = null;
 		PrintWriter out = null;
-//		File file = new File("output");
-//		File outputfile = new File("output2");
+//		 File file = new File("output");
+//		 File outputfile = new File("output2");
 		try {
 			br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
 			out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
-//			br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
-//			out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(outputfile), StandardCharsets.UTF_8), true);
+//			 br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+//			 out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(outputfile), StandardCharsets.UTF_8), true);
 			String input;
 			String text = null;
-			String lasttext = null;
 			String hashid = null;
-			String lasthashid = null;
+			String currenthashid = null;
 			String[] keyText = null;
-			String[] lastkeyText = null;
 			String[] hashidArr = null;
 			Map<String, Integer> keyWords = new HashMap<String, Integer>();
 			BigInteger id = BigInteger.ONE;
 			while ((input = br.readLine()) != null) {
-				if (lasthashid == null) {
-					String[] parts = input.split("\t");
-					lasttext = parts[1];
-					lasthashid = parts[0];
-					lastkeyText = lasttext.split(",");
-					for (String a : lastkeyText) {
-						if(keyWords.containsKey(a)) {
-							keyWords.put(a, keyWords.get(a)+1);
+				String[] parts = input.split("\t");
+				text = parts[1];
+				hashid = parts[0];
+				keyText = text.split(",");
+				if (currenthashid != null && currenthashid.equals(hashid)) {
+					for (String a : keyText) {
+						if (keyWords.containsKey(a)) {
+							keyWords.put(a, keyWords.get(a) + 1);
 						} else {
-							keyWords.put(a, 1);							
+							keyWords.put(a, 1);
 						}
 					}
 				} else {
-					String[] parts = input.split("\t");
-					text = parts[1];
-					hashid = parts[0];
-					keyText = text.split(",");
-					if (hashid.equals(lasthashid)) {
-						for (String a : keyText) {
-							if (keyWords.containsKey(a)) {
-								keyWords.put(a, keyWords.get(a) + 1);
-							} else {
-								keyWords.put(a, 1);
-							}
-						}
-					} else {
-						hashidArr = lasthashid.split("#");
+					if (currenthashid != null && !currenthashid.equals(hashid)) {
+						hashidArr = currenthashid.split("#");
 						String output = id + "\t" + hashidArr[0] + "\t" + hashidArr[1] + "\t" + "{";
 						id = id.add(BigInteger.ONE);
 						for (String a : keyWords.keySet()) {
@@ -79,22 +65,27 @@ public final class TweeterDataReducer {
 							}
 						}
 						output = "";
+					} else {
+						for (String a : keyText) {
+							if (keyWords.containsKey(a)) {
+								keyWords.put(a, keyWords.get(a) + 1);
+							} else {
+								keyWords.put(a, 1);
+							}
+						}
 					}
-					lasttext = text;
-					lasthashid = hashid;
-					lastkeyText = keyText;
+					currenthashid = hashid;
 				}
 			}
-			if(lasthashid != null) {
-				hashidArr = lasthashid.split("#");
+			if (currenthashid != null && currenthashid.equals(hashid)) {
+				hashidArr = currenthashid.split("#");
 				String output = id + "\t" + hashidArr[0] + "\t" + hashidArr[1] + "\t" + "{";
 				for (String a : keyWords.keySet()) {
 					output += "\"" + a + "\":" + keyWords.get(a) + ",";
 				}
 				output = output.substring(0, output.length() - 1) + "}";
-				out.write(output + "\n");				
+				out.write(output + "\n");
 			}
-			keyWords.clear();
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
@@ -104,7 +95,7 @@ public final class TweeterDataReducer {
 				} catch (IOException ee) {
 					ee.printStackTrace();
 				}
-				if(out != null) {
+				if (out != null) {
 					out.close();
 				}
 			}

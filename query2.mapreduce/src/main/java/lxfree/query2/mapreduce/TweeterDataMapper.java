@@ -146,7 +146,9 @@ public class TweeterDataMapper {
 				while(m.find()) {
 					keyWords.append(m.group()).append(",");
 				}
-				
+				if(keyWords.length() == 0) {
+					continue;
+				}
 				//print out valid data
 				for(int i = 0; i < hashtags.length(); i++) {
 					String hashText = hashtags.getJSONObject(i).getString("text");
