@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -40,10 +41,10 @@ public class TweeterDataMapper {
 //		File output = new File("output");
 		
 		if(stopWords.size() == 0) {
-			File stopfile = new File("src/main/java/stopwords.txt");
+			InputStream stopfile = TweeterDataMapper.class.getResourceAsStream( "/stopwords.txt" );
 			BufferedReader stopbr = null;
 			try {
-				stopbr = new BufferedReader(new InputStreamReader(new FileInputStream(stopfile), StandardCharsets.UTF_8));
+				stopbr = new BufferedReader(new InputStreamReader(stopfile, StandardCharsets.UTF_8));
 				String l = null;
 				while((l=stopbr.readLine())!=null) {
 					stopWords.put(l.toLowerCase(), 1);
