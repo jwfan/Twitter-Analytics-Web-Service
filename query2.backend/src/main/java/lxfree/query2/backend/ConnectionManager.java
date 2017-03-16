@@ -90,33 +90,5 @@ public class ConnectionManager {
     	return hBaseconn;
     }
     
-    /**
-     * Initialize Mongo Database
-     */
-    private static void initializeMongoDB() {
-        try{   
-    		
-            // To connect to mongodb server
-            MongoClient mongoClient = new MongoClient(DNS_ADDRESS , 27017);
-   			
-            // Now connect to your databases
-            mongoDB = mongoClient.getDatabase(MONGODB_NAME);
-            
-            System.out.println("Connect to database successfully");
-         }catch(Exception e){
-            System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-         }
-    }
-    
-    /**
-     * Get connection to Mongo DB
-     * @return Mongo Database
-     */
-    public static MongoDatabase getMongoDB() {
-    	if(mongoDB == null) {
-    		initializeMongoDB();
-    	}
-    	return mongoDB;
-    }
 
 }
