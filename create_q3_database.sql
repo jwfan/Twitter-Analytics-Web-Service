@@ -10,7 +10,7 @@ drop table if exists `twitter`;
 create table `twitter` (
 	`twitter_id` varchar(20) not null,
 	`user_id` varchar(19) not null,
-	`time_stamp` TIMESTAMP not null,
+	`time_stamp` varchar(13) not null,
 	`censored_text` LONGTEXT not null,
 	`impact_score` integer default 0 not null,
 	`keywords` LONGTEXT not null,
