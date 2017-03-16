@@ -33,11 +33,6 @@ public class ConnectionManager {
     private static org.apache.hadoop.hbase.client.Connection hBaseconn;
     private static final Logger LOGGER = Logger.getRootLogger();
     
-    //MongoDB Configuration
-    private static MongoDatabase mongoDB;
-    private static final String DNS_ADDRESS = "ec2-52-87-42-136.compute-1.amazonaws.com";
-    private static final String MONGODB_NAME = "comments";
-    
     /**
      * Initializes database connection.
      *
