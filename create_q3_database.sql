@@ -9,8 +9,8 @@ use q3_db;
 drop table if exists `twitter`;
 create table `twitter` (
 	`twitter_id` varchar(20) not null,
-	`user_id` varchar(15) not null,
-	`time_id` varchar(12) not null,
+	`user_id` varchar(19) not null,
+	`time_stamp` TIMESTAMP not null,
 	`censored_text` LONGTEXT not null,
 	`impact_score` integer default 0 not null,
 	`keywords` LONGTEXT not null,
@@ -23,4 +23,4 @@ load data local infile 'part-00000' into table twitter columns terminated by '\t
 
 -- Step 4 create index
 create index user_index on twitter (user_id);
-create index time_index on twitter (time_id);
+create index time_index on twitter (time_stamp);
