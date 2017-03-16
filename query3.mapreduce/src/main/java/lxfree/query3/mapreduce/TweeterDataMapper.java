@@ -230,9 +230,8 @@ public class TweeterDataMapper {
 						text=text.substring(0, start) + censor + text.substring(end);
 					}
 				}
-				
-				text = text.replaceAll("\n", "\\\\n");
-				text = text.replaceAll("\r", "\\\\r");
+				JSONObject textJo = new JSONObject();
+				textJo.put("censored_text", text);
 				// print out valid data
 				String wordFreq = "";
 				for (String x : countMap.keySet()) {
@@ -241,7 +240,7 @@ public class TweeterDataMapper {
 				if(wordFreq.length() == 0) {
 					wordFreq = ",";
 				}
-				out.write(tid + "\t" + uid + "\t" + time + "\t" + text + "\t" + impact_score + "\t{"
+				out.write(tid + "\t" + uid + "\t" + time + "\t" + textJo.toString() + "\t" + impact_score + "\t{"
 						+ wordFreq.substring(0, wordFreq.length() - 1) + "}" + "\t" + totalWrods + "\n");
 
 			}
