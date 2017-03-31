@@ -52,10 +52,10 @@ public class MySqlServlet extends HttpServlet {
         response.setStatus(200);
         response.setContentType("text/plain;charset=UTF-8");
         
-        Thread t = new Thread(new Runnable(){
+//        Thread t = new Thread(new Runnable(){
 
-			@Override
-			public void run() {
+//			@Override
+//			public void run() {
 				String result = TEAMID + "," + TEAM_AWS_ACCOUNT_ID + "\n";
 				//invalid parameter check
 				if("".equals(hashtag) || "".equals(keywordslist) || !N.matches(regex)) {
@@ -87,7 +87,7 @@ public class MySqlServlet extends HttpServlet {
 						String sql = "SELECT hashtag, user_id, keywords FROM " + TABLENAME + " where hashtag=?";
 						stmt = conn.prepareStatement(sql);
 						stmt.setString(1, hashtag);
-						ResultSet rs = stmt.executeQuery(sql);
+						ResultSet rs = stmt.executeQuery();
 						while(rs.next()){
 							int score = 0;
 							Long userid = Long.valueOf(rs.getString("user_id"));
@@ -115,10 +115,11 @@ public class MySqlServlet extends HttpServlet {
 						}
 						if(pq.size() > 0) {
 							StringBuilder res = new StringBuilder();
-							for(KVPair pair: pq) {
-								res.append(pair.getKey()).append(":").append(pair.getValue()).append(",");
+							while(pq.peek()!=null) {
+								KVPair peek = pq.poll();
+								String s = peek.getKey() + ":" + peek.getValue() + ",";
+								res.insert(0, s);
 							}
-							
 							result += res.substring(0, res.length() - 1) + "\n";
 						}
 						writer.write(result);
@@ -136,9 +137,9 @@ public class MySqlServlet extends HttpServlet {
 					}
 				}
 			}
-        });
-        t.start();
-    }
+//        });
+//        t.start();
+//    }
 
     @Override
     protected void doPost(final HttpServletRequest request, final HttpServletResponse response) 

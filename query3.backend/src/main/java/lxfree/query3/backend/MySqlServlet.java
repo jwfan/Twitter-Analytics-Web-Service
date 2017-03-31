@@ -202,7 +202,8 @@ public class MySqlServlet extends HttpServlet {
 		        			} else {
 		        				censorsb.append(keyWord);
 		        			}
-		        			sb.append(censorsb).append(":").append(kws.getTopicScore()).append("\t");
+		        			String s = censorsb+":"+kws.getTopicScore()+"\t";
+		        			sb.insert(0, s);
 		        			
 		        			//add tweets into priority queue to get top n2 tweets
 		        			List<Tweet> tList = kws.getTweetList();
@@ -229,8 +230,10 @@ public class MySqlServlet extends HttpServlet {
 		        		//output impact score, tid, text
 		        		while(tweetspq.peek() != null) {
 		        			Tweet t = tweetspq.poll();
-		        			tsb.append(t.getImpact_socre()).append("\t")
+		        			StringBuilder tweetSb = new StringBuilder();
+		        			tweetSb.append(t.getImpact_socre()).append("\t")
 		        			.append(t.getId()).append("\t").append(t.getText()).append("\n");
+		        			tsb.insert(0, tweetSb);
 		        		}
 		        		result = sb.substring(0,sb.length()-1) + "\n" + tsb.substring(0,tsb.length() -1);
 		        		writer.write(result);
