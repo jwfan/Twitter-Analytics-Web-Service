@@ -14,11 +14,6 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoDatabase;
-
 public class ConnectionManager {
 	//Mysql configuration
     private static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
