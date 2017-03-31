@@ -29,7 +29,7 @@ public class MySqlServlet extends HttpServlet {
 	private static Connection conn;
 	private static String TEAMID = "LXFreee";
 	private static String TEAM_AWS_ACCOUNT_ID = "7104-6822-7247";
-	private static String TABLENAME = "twitter";
+	private static String TABLENAME = "q2_table";
 	private final static String regex = "[0-9]+";
 
     public MySqlServlet() {
