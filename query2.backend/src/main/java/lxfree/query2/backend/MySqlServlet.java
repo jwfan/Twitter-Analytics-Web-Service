@@ -3,6 +3,7 @@ package lxfree.query2.backend;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -18,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONObject;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -27,6 +29,7 @@ public class MySqlServlet extends HttpServlet {
 	private static String TEAMID = "LXFreee";
 	private static String TEAM_AWS_ACCOUNT_ID = "7104-6822-7247";
 	private static String TABLENAME = "twitter";
+	private final static String regex = "[0-9]+";
 
     public MySqlServlet() {
         try {
@@ -49,11 +52,11 @@ public class MySqlServlet extends HttpServlet {
         response.setStatus(200);
         response.setContentType("text/plain;charset=UTF-8");
         
-        if("".equals(hashtag) || "".equals(N) || "".equals(keywordslist)) {
+        //invalid parameter check
+        if("".equals(hashtag) || "".equals(keywordslist) || !N.matches(regex)) {
         	writer.write(result);
         	writer.close();
         } else {
-        	Statement stmt = null;
         	int n = Integer.valueOf(N);
         	String[] keywords = keywordslist.split(",");
         	PriorityQueue<KVPair> pq = new PriorityQueue<KVPair>(new Comparator<KVPair>(){
@@ -73,9 +76,12 @@ public class MySqlServlet extends HttpServlet {
         		}
         	});
         	
+        	PreparedStatement stmt = null;
         	try {
-        		stmt = conn.createStatement();
-        		String sql = "SELECT hashtag, user_id, keywords FROM " + TABLENAME + " where hashtag='" + hashtag + "'";
+        		
+        		String sql = "SELECT hashtag, user_id, keywords FROM " + TABLENAME + " where hashtag=?";
+        		stmt = conn.prepareStatement(sql);
+        		stmt.setString(1, hashtag);
         		ResultSet rs = stmt.executeQuery(sql);
         		while(rs.next()){
         			int score = 0;
