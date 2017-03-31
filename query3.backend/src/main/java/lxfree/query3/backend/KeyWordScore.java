@@ -6,12 +6,12 @@ public class KeyWordScore {
 
     private String key;
     private Double topicScore;
-    private List<String> text;
+    private List<Tweet> tweet;
     
-	public KeyWordScore(String key, Double topicScore, List<String> text) {
+	public KeyWordScore(String key, Double topicScore, List<Tweet> tweet) {
 		this.key = key;
 		this.topicScore = topicScore;
-		this.text = text;
+		this.tweet = tweet;
 	}
 
 	public String getKey() {
@@ -22,10 +22,8 @@ public class KeyWordScore {
 		return topicScore;
 	}
 
-	public List<String> getText() {
-		return text;
+	public List<Tweet> getTweetList() {
+		return tweet;
 	}
-	
-	
 
 }

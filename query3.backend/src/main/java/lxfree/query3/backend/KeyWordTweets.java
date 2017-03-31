@@ -28,7 +28,4 @@ public class KeyWordTweets {
 	public void addTweet(Tweet tweet) {
 		this.tweets.add(tweet);
 	}
-	
-	
-
 }

@@ -19,11 +19,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * This class is to serve as mapper in MapReduce. List all the data and count as
- * 1
+ * This class is to serve as mapper in MapReduce. List all the data and count as 1
  * 
- * @author Ruixue
- *
  */
 public class TweeterDataMapper {
 
@@ -41,8 +38,8 @@ public class TweeterDataMapper {
 		BufferedReader br = null;
 		PrintWriter out = null;
 		// String fileName = System.getenv("mapreduce_map_input_file");
-		 File file = new File("part-r-00000");
-		 File output = new File("output");
+//		 File file = new File("part-r-00000");
+//		 File output = new File("output");
 		 // Load stop words
 		if (stopWords.size() == 0) {
 			InputStream stopfile = TweeterDataMapper.class.getResourceAsStream("/stopwords.txt");
@@ -89,10 +86,10 @@ public class TweeterDataMapper {
 		}
 		
 		try {
-			 br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
-			 out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8), true);
-//			br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
-//			out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
+//			 br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+//			 out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8), true);
+			br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
+			out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
 
 			String line;
 			while ((line = br.readLine()) != null) {
