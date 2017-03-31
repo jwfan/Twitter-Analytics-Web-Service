@@ -11,7 +11,7 @@ create table `twitter` (
 	`unique_id` varchar(10) not null,
 	`hashtag` varchar(140) not null,
 	`user_id` varchar(19) not null,
-	`keywords` LONGTEXT not null
+	`keywords` LONGTEXT not null,
 	primary key (unique_id)
 );
 

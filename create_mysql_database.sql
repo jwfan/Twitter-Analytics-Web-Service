@@ -1,5 +1,5 @@
 -- rename the output of the map-reduce of q2 and q3 respectively first 
--- mysql -u username --password=CClxfree --local-infile=1 < create_q2_database.sql
+mysql -u root -pCClxfreee --local-infile=1 < create_q2_database.sql
 
 -- Step 1 create database
 drop database if exists twitter_db;
@@ -12,7 +12,7 @@ create table `q2_table` (
 	`unique_id` varchar(10) not null,
 	`hashtag` varchar(140) not null,
 	`user_id` varchar(19) not null,
-	`keywords` LONGTEXT not null
+	`keywords` LONGTEXT not null,
 	primary key (unique_id)
 );
 
@@ -31,12 +31,12 @@ create table `q3_table` (
 	`censored_text` LONGTEXT not null,
 	`impact_score` integer default 0 not null,
 	`keywords` LONGTEXT not null,
-	`word_count` integer default 0 not null
+	`word_count` integer default 0 not null,
 	primary key (twitter_id)
 );
 
 -- Step 6 add data to q3 table
-load data local infile 'q3-output' into table q3_table columns terminated by '\t' LINES TERMINATED BY '\n';
+load data local infile 'part-00000' into table q3_table columns terminated by '\t' LINES TERMINATED BY '\n';
 
 -- Step 7 create index
 create index user_index on q3_table (user_id);
