@@ -6,8 +6,8 @@ create database q3_db;
 use q3_db;
 
 -- Step 2 create twitter table
-drop table if exists `twitter`;
-create table `twitter` (
+drop table if exists `q3_table` default charset utf8 COLLATE utf8_general_ci;
+create table `q3_table` (
 	`twitter_id` varchar(20) not null,
 	`user_id` varchar(19) not null,
 	`time_stamp` varchar(13) not null,
@@ -19,8 +19,8 @@ create table `twitter` (
 );
 
 -- Step 3 add data to twitter table
-load data local infile 'part-00000' into table twitter columns terminated by '\t' LINES TERMINATED BY '\n';
+load data local infile 'part-00000' into table q3_table columns terminated by '\t' LINES TERMINATED BY '\n';
 
 -- Step 4 create index
-create index user_index on twitter (user_id);
-create index time_index on twitter (time_stamp);
+create index user_index on q3_table (user_id);
+create index time_index on q3_table (time_stamp);
