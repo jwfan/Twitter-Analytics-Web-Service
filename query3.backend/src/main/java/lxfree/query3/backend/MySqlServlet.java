@@ -10,7 +10,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -18,8 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -125,7 +122,7 @@ public class MySqlServlet extends HttpServlet {
 		        			totalNum++;
 		        		}
 		        		//Store the top n1 topic words
-		            	PriorityQueue<KeyWordScore> pq = new PriorityQueue<KeyWordScore>(new Comparator<KeyWordScore>(){
+		            	PriorityQueue<KeyWordScore> pq = new PriorityQueue<KeyWordScore>(11, new Comparator<KeyWordScore>(){
 		            		@Override
 		            		public int compare(KeyWordScore o1, KeyWordScore o2) {
 		        	    		if(o1.getTopicScore() > o2.getTopicScore()) {
@@ -138,7 +135,7 @@ public class MySqlServlet extends HttpServlet {
 		            		}
 		            	});
 		            	//store top n2 tweets with topic words
-		            	PriorityQueue<Tweet> tweetspq = new PriorityQueue<Tweet>(new Comparator<Tweet>(){
+		            	PriorityQueue<Tweet> tweetspq = new PriorityQueue<Tweet>(11, new Comparator<Tweet>(){
 		            		@Override
 		            		public int compare(Tweet o1, Tweet o2) {
 		            			if(o1.getImpact_socre() > o2.getImpact_socre()) {

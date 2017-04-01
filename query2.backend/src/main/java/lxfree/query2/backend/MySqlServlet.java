@@ -2,6 +2,7 @@ package lxfree.query2.backend;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONObject;
+import org.jcodings.Encoding;
 import org.json.JSONException;
 
 public class MySqlServlet extends HttpServlet {
@@ -83,10 +85,6 @@ public class MySqlServlet extends HttpServlet {
 						ResultSet rs = stmt.executeQuery();
 						while(rs.next()){
 							int score = 0;
-							String htsql = rs.getString("hashtag");
-							if(!htsql.equals(hashtag)){
-								continue;
-							}
 							Long userid = Long.valueOf(rs.getString("user_id"));
 							JSONObject jo = new JSONObject(rs.getString("keywords"));
 							for(int i = 0; i < keywords.length; i++) {
