@@ -6,21 +6,15 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Comparator;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.PriorityQueue;
 
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONObject;
-
-import org.json.JSONArray;
 import org.json.JSONException;
 
 public class MySqlServlet extends HttpServlet {
@@ -64,7 +58,7 @@ public class MySqlServlet extends HttpServlet {
 				} else {
 					int n = Integer.valueOf(N);
 					String[] keywords = keywordslist.split(",");
-					PriorityQueue<KVPair> pq = new PriorityQueue<KVPair>(new Comparator<KVPair>(){
+					PriorityQueue<KVPair> pq = new PriorityQueue<KVPair>(11, new Comparator<KVPair>(){
 						@Override
 						public int compare(KVPair o1, KVPair o2) {
 							if(o1.getValue() != o2.getValue()) {
