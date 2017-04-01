@@ -83,13 +83,16 @@ public class MySqlServlet extends HttpServlet {
 					
 					PreparedStatement stmt = null;
 					try {
-						
 						String sql = "SELECT hashtag, user_id, keywords FROM " + TABLENAME + " where hashtag=?";
 						stmt = conn.prepareStatement(sql);
 						stmt.setString(1, hashtag);
 						ResultSet rs = stmt.executeQuery();
 						while(rs.next()){
 							int score = 0;
+							String htsql = rs.getString("hashtag");
+							if(!htsql.equals(hashtag)){
+								continue;
+							}
 							Long userid = Long.valueOf(rs.getString("user_id"));
 							JSONObject jo = new JSONObject(rs.getString("keywords"));
 							for(int i = 0; i < keywords.length; i++) {
