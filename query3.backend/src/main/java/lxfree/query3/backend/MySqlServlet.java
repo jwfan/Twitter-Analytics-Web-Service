@@ -80,9 +80,9 @@ public class MySqlServlet extends HttpServlet {
 			}
 		}
         
-        Thread t = new Thread(new Runnable(){
-			@Override
-			public void run() {
+//        Thread t = new Thread(new Runnable(){
+//			@Override
+//			public void run() {
 				String result = TEAMID + "," + TEAM_AWS_ACCOUNT_ID + "\n";
 		        //invalid parameter check
 		        if(!startTime.matches(regex) || !endTime.matches(regex) || !startUid.matches(regex) 
@@ -92,7 +92,7 @@ public class MySqlServlet extends HttpServlet {
 		        } else {
 		        	PreparedStatement stmt = null;
 		        	try {
-		        		String sql = "SELECT twitter_id, censored_text, impact_score, keywords, word_count FROM " + TABLENAME + 
+		        		String sql = "SELECT twitter_id, censored_text, impact_score, keywords FROM " + TABLENAME + 
 		        				" WHERE time_stamp between ? and ?" + 
 		        				" and user_id between ? and ?";
 		        		stmt = conn.prepareStatement(sql);
@@ -249,9 +249,9 @@ public class MySqlServlet extends HttpServlet {
 		        }
 				
 			}
-        });
-        t.start();
-    }
+//        });
+//        t.start();
+//    }
 
     @Override
     protected void doPost(final HttpServletRequest request, final HttpServletResponse response) 

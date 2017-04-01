@@ -17,7 +17,7 @@ import org.apache.log4j.Logger;
 public class ConnectionManager {
 	//Mysql configuration
     private static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
-    private static final String DB_NAME = "twitter_db";
+    private static final String DB_NAME = "q2_db";
     private static final String URL = "jdbc:mysql://ec2-54-204-170-186.compute-1.amazonaws.com/" + DB_NAME + "?useSSL=false";
     private static final String DB_USER = "root";
     private static final String DB_PWD = "CClxfreee";

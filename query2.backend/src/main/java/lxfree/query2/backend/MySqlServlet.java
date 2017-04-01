@@ -2,7 +2,6 @@ package lxfree.query2.backend;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,7 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONObject;
-import org.jcodings.Encoding;
 import org.json.JSONException;
 
 public class MySqlServlet extends HttpServlet {
@@ -48,93 +46,87 @@ public class MySqlServlet extends HttpServlet {
         response.setStatus(200);
         response.setContentType("text/plain;charset=UTF-8");
         
-//        Thread t = new Thread(new Runnable(){
-
-//			@Override
-//			public void run() {
-				String result = TEAMID + "," + TEAM_AWS_ACCOUNT_ID + "\n";
-				//invalid parameter check
-				if("".equals(hashtag) || "".equals(keywordslist) || !N.matches(regex)) {
-					writer.write(result);
-					writer.close();
-				} else {
-					int n = Integer.valueOf(N);
-					String[] keywords = keywordslist.split(",");
-					PriorityQueue<KVPair> pq = new PriorityQueue<KVPair>(11, new Comparator<KVPair>(){
-						@Override
-						public int compare(KVPair o1, KVPair o2) {
-							if(o1.getValue() != o2.getValue()) {
-								return o1.getValue() - o2.getValue();//generate the min heap for frequency
-							} else {
-								if(o2.getKey() > o1.getKey()) {// generate the max heap for id
-									return 1;
-								} else if(o2.getKey() < o1.getKey()) {
-									return -1;
-								} else {
-									return 0;
-								}
-							}
-						}
-					});
-					
-					PreparedStatement stmt = null;
-					try {
-						String sql = "SELECT hashtag, user_id, keywords FROM " + TABLENAME + " where hashtag=?";
-						stmt = conn.prepareStatement(sql);
-						stmt.setString(1, hashtag);
-						ResultSet rs = stmt.executeQuery();
-						while(rs.next()){
-							int score = 0;
-							Long userid = Long.valueOf(rs.getString("user_id"));
-							JSONObject jo = new JSONObject(rs.getString("keywords"));
-							for(int i = 0; i < keywords.length; i++) {
-								try{
-									score += jo.getInt(keywords[i]);
-								} catch (JSONException e) {
-									continue;
-								}
-							}
-							KVPair entry = new KVPair(userid, score);
-							if(pq.size() < n) {
-								pq.add(entry);
-							} else {
-								KVPair peek = pq.peek();
-								if(peek.getValue() < entry.getValue()) {
-									pq.poll();
-									pq.add(entry);
-								} else if(peek.getValue() == entry.getValue() && peek.getKey() > entry.getKey()) {
-									pq.poll();
-									pq.add(entry);
-								}
-							}
-						}
-						if(pq.size() > 0) {
-							StringBuilder res = new StringBuilder();
-							while(pq.peek()!=null) {
-								KVPair peek = pq.poll();
-								String s = peek.getKey() + ":" + peek.getValue() + ",";
-								res.insert(0, s);
-							}
-							result += res.substring(0, res.length() - 1) + "\n";
-						}
-						writer.write(result);
-						writer.close();
-					} catch (SQLException e) {
-						e.printStackTrace();
-					} finally {
-						if (stmt != null) {
-							try {
-								stmt.close();
-							} catch (SQLException e) {
-								e.printStackTrace();
-							}
+		String result = TEAMID + "," + TEAM_AWS_ACCOUNT_ID + "\n";
+		//invalid parameter check
+		if("".equals(hashtag) || "".equals(keywordslist) || !N.matches(regex)) {
+			writer.write(result);
+			writer.close();
+		} else {
+			int n = Integer.valueOf(N);
+			String[] keywords = keywordslist.split(",");
+			PriorityQueue<KVPair> pq = new PriorityQueue<KVPair>(11, new Comparator<KVPair>(){
+				@Override
+				public int compare(KVPair o1, KVPair o2) {
+					if(o1.getValue() != o2.getValue()) {
+						return o1.getValue() - o2.getValue();//generate the min heap for frequency
+					} else {
+						if(o2.getKey() > o1.getKey()) {// generate the max heap for id
+							return 1;
+						} else if(o2.getKey() < o1.getKey()) {
+							return -1;
+						} else {
+							return 0;
 						}
 					}
 				}
+			});
+			
+			PreparedStatement stmt = null;
+			try {
+				String sql = "SELECT hashtag, user_id, keywords FROM " + TABLENAME + " where hashtag=?";
+				stmt = conn.prepareStatement(sql);
+				stmt.setString(1, hashtag);
+				ResultSet rs = stmt.executeQuery();
+				while(rs.next()){
+					int score = 0;
+					Long userid = Long.valueOf(rs.getString("user_id"));
+					JSONObject jo = new JSONObject(rs.getString("keywords"));
+					for(int i = 0; i < keywords.length; i++) {
+						try{
+							score += jo.getInt(keywords[i]);
+						} catch (JSONException e) {
+							continue;
+						}
+					}
+					KVPair entry = new KVPair(userid, score);
+					if(pq.size() < n) {
+						pq.add(entry);
+					} else {
+						KVPair peek = pq.peek();
+						if(peek.getValue() < entry.getValue()) {
+							pq.poll();
+							pq.add(entry);
+						} else if(peek.getValue() == entry.getValue() && peek.getKey() > entry.getKey()) {
+							pq.poll();
+							pq.add(entry);
+						}
+					}
+				}
+				if(pq.size() > 0) {
+					StringBuilder res = new StringBuilder();
+					while(pq.peek()!=null) {
+						KVPair peek = pq.poll();
+						String s = peek.getKey() + ":" + peek.getValue() + ",";
+						res.insert(0, s);
+					}
+					result += res.substring(0, res.length() - 1) + "\n";
+				}
+				writer.write(result);
+				writer.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} finally {
+				if (stmt != null) {
+					try {
+						stmt.close();
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
 			}
-//        });
-//        t.start();
-//    }
+		}
+	}
+
 
     @Override
     protected void doPost(final HttpServletRequest request, final HttpServletResponse response) 
