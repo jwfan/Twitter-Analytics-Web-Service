@@ -17,13 +17,13 @@ public class ConnectionManager {
     private static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
     private static final String DB_NAME = "q2_db";
     private static final String[] URLs = {"jdbc:mysql://ec2-54-242-245-123.compute-1.amazonaws.com/" + DB_NAME + "?useSSL=false",
-    		"jdbc:mysql://ec2-54-242-245-123.compute-1.amazonaws.com/" + DB_NAME + "?useSSL=false"};
+    		"jdbc:mysql://ec2-54-209-169-13.compute-1.amazonaws.com/" + DB_NAME + "?useSSL=false"};
     private static final String DB_USER = "root";
     private static final String DB_PWD = "CClxfreee";
     private static Connection conn;
     
     //HBase Configuration
-    private static String zkAddr = "54.243.0.121";
+    private static String zkAddr = "172.31.79.116";
     private static org.apache.hadoop.hbase.client.Connection hBaseconn;
     private static final Logger LOGGER = Logger.getRootLogger();
     
@@ -36,8 +36,7 @@ public class ConnectionManager {
     private static void initializeConnection() throws ClassNotFoundException, SQLException {
         Class.forName(JDBC_DRIVER);
         Random rm = new Random();
-        int i = rm.nextInt(2);
-        System.out.println(i);
+        int i = rm.nextInt(3);
         conn = DriverManager.getConnection(URLs[i], DB_USER, DB_PWD);
     }
     
@@ -65,6 +64,9 @@ public class ConnectionManager {
         conf.set("hbase.master", zkAddr + ":16000");
         conf.set("hbase.zookeeper.quorum", zkAddr);
         conf.set("hbase.zookeeper.property.clientport", "2181");
+        conf.set("zookeeper.session.timeout", "60");
+        conf.set("hbase.rpc.timeout", "60");
+//        conf.set("hbase.client.retries.number", "10");
         hBaseconn = ConnectionFactory.createConnection(conf);
     }
     
