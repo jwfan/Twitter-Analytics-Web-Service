@@ -4,13 +4,11 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Random;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
-import org.apache.hadoop.hbase.client.Table;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -18,7 +16,8 @@ public class ConnectionManager {
 	//Mysql configuration
     private static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
     private static final String DB_NAME = "q2_db";
-    private static final String URL = "jdbc:mysql://ec2-52-55-94-245.compute-1.amazonaws.com/" + DB_NAME + "?useSSL=false";
+    private static final String[] URLs = {"jdbc:mysql://ec2-54-242-245-123.compute-1.amazonaws.com/" + DB_NAME + "?useSSL=false",
+    		"jdbc:mysql://ec2-54-242-245-123.compute-1.amazonaws.com/" + DB_NAME + "?useSSL=false"};
     private static final String DB_USER = "root";
     private static final String DB_PWD = "CClxfreee";
     private static Connection conn;
@@ -36,7 +35,10 @@ public class ConnectionManager {
      */
     private static void initializeConnection() throws ClassNotFoundException, SQLException {
         Class.forName(JDBC_DRIVER);
-        conn = DriverManager.getConnection(URL, DB_USER, DB_PWD);
+        Random rm = new Random();
+        int i = rm.nextInt(2);
+        System.out.println(i);
+        conn = DriverManager.getConnection(URLs[i], DB_USER, DB_PWD);
     }
     
     /**

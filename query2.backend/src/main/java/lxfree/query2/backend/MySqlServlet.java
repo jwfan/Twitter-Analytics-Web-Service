@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONObject;
+import org.json.JSONArray;
 import org.json.JSONException;
 
 public class MySqlServlet extends HttpServlet {
@@ -27,7 +28,7 @@ public class MySqlServlet extends HttpServlet {
 	private static String TEAM_AWS_ACCOUNT_ID = "7104-6822-7247";
 	private static String TABLENAME = "q2_table";
 	private final static String regex = "[0-9]+";
-	private static Map<String, ResultSet> cache = new HashMap<String, ResultSet>();
+	private static Map<String, JSONArray> cache = new HashMap<String, JSONArray>();
 
 	public MySqlServlet() {
 		try {
@@ -76,40 +77,70 @@ public class MySqlServlet extends HttpServlet {
 
 			PreparedStatement stmt = null;
 			try {
-				ResultSet rs = null;
 		        if(cache.containsKey(hashtag)) {
-		        	rs = cache.get(hashtag);
+		        	JSONArray cacheRes = cache.get(hashtag);
+		        	for(int i = 0; i < cacheRes.length(); i++) {
+		        		JSONObject jo = cacheRes.getJSONObject(i);
+		        		Long userid = jo.getLong("user_id");
+		        		JSONObject cacheKW = jo.getJSONObject("keywrods");
+		        		int score = 0;
+						for (int j = 0; i < keywords.length; j++) {
+							try {
+								score += cacheKW.getInt(keywords[j]);
+							} catch (JSONException e) {
+								continue;
+							}
+						}
+						KVPair entry = new KVPair(userid, score);
+						if (pq.size() < n) {
+							pq.add(entry);
+						} else {
+							KVPair peek = pq.peek();
+							if (peek.getValue() < entry.getValue()) {
+								pq.poll();
+								pq.add(entry);
+							} else if (peek.getValue() == entry.getValue() && peek.getKey() > entry.getKey()) {
+								pq.poll();
+								pq.add(entry);
+							}
+						}
+		        	}
 		        } else {
 		        	String sql = "SELECT hashtag, user_id, keywords FROM " + TABLENAME + " where hashtag=?";
 		        	stmt = conn.prepareStatement(sql);
 		        	stmt.setString(1, hashtag);
-		        	rs = stmt.executeQuery();		        	
+		        	ResultSet rs = stmt.executeQuery();
+		        	JSONArray cacheJa = new JSONArray();
+					while (rs.next()) {
+						int score = 0;
+						Long userid = Long.valueOf(rs.getString("user_id"));
+						JSONObject jo = new JSONObject(rs.getString("keywords"));
+						JSONObject cacheObj = new JSONObject();
+						cacheObj.put("user_id", userid);
+						cacheObj.put("keywrods", jo);
+						cacheJa.put(cacheObj);
+						for (int i = 0; i < keywords.length; i++) {
+							try {
+								score += jo.getInt(keywords[i]);
+							} catch (JSONException e) {
+								continue;
+							}
+						}
+						KVPair entry = new KVPair(userid, score);
+						if (pq.size() < n) {
+							pq.add(entry);
+						} else {
+							KVPair peek = pq.peek();
+							if (peek.getValue() < entry.getValue()) {
+								pq.poll();
+								pq.add(entry);
+							} else if (peek.getValue() == entry.getValue() && peek.getKey() > entry.getKey()) {
+								pq.poll();
+								pq.add(entry);
+							}
+						}
+					}
 		        }
-				while (rs.next()) {
-					int score = 0;
-					Long userid = Long.valueOf(rs.getString("user_id"));
-					JSONObject jo = new JSONObject(rs.getString("keywords"));
-					for (int i = 0; i < keywords.length; i++) {
-						try {
-							score += jo.getInt(keywords[i]);
-						} catch (JSONException e) {
-							continue;
-						}
-					}
-					KVPair entry = new KVPair(userid, score);
-					if (pq.size() < n) {
-						pq.add(entry);
-					} else {
-						KVPair peek = pq.peek();
-						if (peek.getValue() < entry.getValue()) {
-							pq.poll();
-							pq.add(entry);
-						} else if (peek.getValue() == entry.getValue() && peek.getKey() > entry.getKey()) {
-							pq.poll();
-							pq.add(entry);
-						}
-					}
-				}
 				if (pq.size() > 0) {
 					StringBuilder res = new StringBuilder();
 					while (pq.peek() != null) {

@@ -2,9 +2,10 @@ package lxfree.query2.backend;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.PriorityQueue;
 
 import javax.servlet.ServletException;
@@ -27,12 +28,14 @@ import org.json.JSONException;
 
 public class HBaseServlet extends HttpServlet {
 
+	private static final long serialVersionUID = 1L;
 	private static Connection conn;
 	private static String TEAMID = "LXFreee";
 	private static String TEAM_AWS_ACCOUNT_ID = "7104-6822-7247";
 	private static String TABLENAME = "q2_table";
 	private final static String regex = "[0-9]+";
 	private static byte[] bColFamily = Bytes.toBytes("tweet");
+	private static Map<String, JSONArray> cache = new HashMap<String, JSONArray>();
 	
     public HBaseServlet() {
         try {
@@ -80,46 +83,81 @@ public class HBaseServlet extends HttpServlet {
 					}
 				}
 			});
-	        Table linksTable = conn.getTable(TableName.valueOf(TABLENAME));
-	        Scan scan = new Scan();
-	        byte[] htCol = Bytes.toBytes("hashtag");
-	        byte[] uCol = Bytes.toBytes("user_id");
-	        byte[] kCol = Bytes.toBytes("keywords");
-	        scan.addColumn(bColFamily, htCol);
-	        scan.addColumn(bColFamily, uCol);
-	        scan.addColumn(bColFamily, kCol);
-	        scan.setFilter(new PrefixFilter(hashtag.getBytes()));
-	        ResultScanner rs = linksTable.getScanner(scan);
-			for (Result r = rs.next(); r != null; r = rs.next()) {
-				String ht = Bytes.toString(r.getValue(bColFamily, htCol));
-				if(!ht.equals(hashtag)) {//check whether the hashtag in Hbase exactly matches request hashtag
-					continue;      		
-				}
-				int score = 0;
-				Long userid = Long.valueOf(Bytes.toString(r.getValue(bColFamily, uCol)));
-				JSONObject jo = new JSONObject(Bytes.toString(r.getValue(bColFamily, kCol)));
-				for(int i = 0; i < keywords.length; i++) {
-					try{
-						score += jo.getInt(keywords[i]);
-					} catch (JSONException e) {
-						continue;
+			if(cache.containsKey(hashtag)) {
+	        	JSONArray cacheRes = cache.get(hashtag);
+	        	for(int i = 0; i < cacheRes.length(); i++) {
+	        		JSONObject jo = cacheRes.getJSONObject(i);
+	        		Long userid = jo.getLong("user_id");
+	        		JSONObject cacheKW = jo.getJSONObject("keywrods");
+	        		int score = 0;
+					for (int j = 0; i < keywords.length; j++) {
+						try {
+							score += cacheKW.getInt(keywords[j]);
+						} catch (JSONException e) {
+							continue;
+						}
+					}
+					KVPair entry = new KVPair(userid, score);
+					if (pq.size() < n) {
+						pq.add(entry);
+					} else {
+						KVPair peek = pq.peek();
+						if (peek.getValue() < entry.getValue()) {
+							pq.poll();
+							pq.add(entry);
+						} else if (peek.getValue() == entry.getValue() && peek.getKey() > entry.getKey()) {
+							pq.poll();
+							pq.add(entry);
+						}
+					}
+	        	}
+			}else {
+				Table linksTable = conn.getTable(TableName.valueOf(TABLENAME));
+				Scan scan = new Scan();
+				byte[] htCol = Bytes.toBytes("hashtag");
+				byte[] uCol = Bytes.toBytes("user_id");
+				byte[] kCol = Bytes.toBytes("keywords");
+				scan.addColumn(bColFamily, htCol);
+				scan.addColumn(bColFamily, uCol);
+				scan.addColumn(bColFamily, kCol);
+				scan.setFilter(new PrefixFilter(hashtag.getBytes()));
+				ResultScanner rs = linksTable.getScanner(scan);
+				JSONArray cacheJa = new JSONArray();
+				for (Result r = rs.next(); r != null; r = rs.next()) {
+					String ht = Bytes.toString(r.getValue(bColFamily, htCol));
+					if(!ht.equals(hashtag)) {//check whether the hashtag in Hbase exactly matches request hashtag
+						continue;      		
+					}
+					int score = 0;
+					Long userid = Long.valueOf(Bytes.toString(r.getValue(bColFamily, uCol)));
+					JSONObject jo = new JSONObject(Bytes.toString(r.getValue(bColFamily, kCol)));
+					JSONObject cacheObj = new JSONObject();
+					cacheObj.put("user_id", userid);
+					cacheObj.put("keywrods", jo);
+					cacheJa.put(cacheObj);
+					for(int i = 0; i < keywords.length; i++) {
+						try{
+							score += jo.getInt(keywords[i]);
+						} catch (JSONException e) {
+							continue;
+						}
+					}
+					KVPair entry = new KVPair(userid, score);
+					if(pq.size() < n) {
+						pq.add(entry);
+					} else {
+						KVPair peek = pq.peek();
+						if(peek.getValue() < entry.getValue()) {
+							pq.poll();
+							pq.add(entry);
+						} else if(peek.getValue() == entry.getValue() && peek.getKey() > entry.getKey()) {
+							pq.poll();
+							pq.add(entry);
+						}
 					}
 				}
-				KVPair entry = new KVPair(userid, score);
-				if(pq.size() < n) {
-					pq.add(entry);
-				} else {
-					KVPair peek = pq.peek();
-					if(peek.getValue() < entry.getValue()) {
-						pq.poll();
-						pq.add(entry);
-					} else if(peek.getValue() == entry.getValue() && peek.getKey() > entry.getKey()) {
-						pq.poll();
-						pq.add(entry);
-					}
-				}
+				rs.close();
 			}
-			rs.close();
 			if(pq.size() > 0) {
 				StringBuilder res = new StringBuilder();
 				while(pq.peek()!=null) {

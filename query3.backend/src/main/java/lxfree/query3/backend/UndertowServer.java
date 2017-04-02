@@ -28,7 +28,7 @@ public class UndertowServer {
 		try {
 			DeploymentInfo servletBuilder = deployment().setClassLoader(UndertowServer.class.getClassLoader())
 					.setContextPath(PATH).setDeploymentName("handler.war")
-					.addServlets(servlet("MySqlServlet", MySqlServlet.class).addMapping("/q2"));
+					.addServlets(servlet("MySqlServlet", MySqlServlet.class).addMapping("/q3"));
 
 			DeploymentManager manager = defaultContainer().addDeployment(servletBuilder);
 			manager.deploy();
