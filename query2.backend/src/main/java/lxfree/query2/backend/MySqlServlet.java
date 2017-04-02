@@ -46,9 +46,9 @@ public class MySqlServlet extends HttpServlet {
 		final String hashtag = request.getParameter("hashtag");
 		final String N = request.getParameter("N");
 		final String keywordslist = request.getParameter("list_of_key_words");
-		final PrintWriter writer = response.getWriter();
 		response.setStatus(200);
 		response.setContentType("text/plain;charset=UTF-8");
+		final PrintWriter writer = response.getWriter();
 
 		String result = TEAMID + "," + TEAM_AWS_ACCOUNT_ID + "\n";
 		// invalid parameter check

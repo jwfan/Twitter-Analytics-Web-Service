@@ -17,8 +17,13 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.filter.CompareFilter;
+import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.filter.PrefixFilter;
+import org.apache.hadoop.hbase.filter.RowFilter;
+import org.apache.hadoop.hbase.regionserver.BloomType;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.TableName;
 
 import org.json.JSONObject;
@@ -113,28 +118,20 @@ public class HBaseServlet extends HttpServlet {
 	        	}
 			}else {
 				Table linksTable = conn.getTable(TableName.valueOf(TABLENAME));
-//				Scan scan = new Scan();
-				Scan scan = new Scan((hashtag+"936891528").getBytes());
-				byte[] htCol = Bytes.toBytes("hashtag");
+				Scan scan = new Scan();
 				byte[] uCol = Bytes.toBytes("userid");
 				byte[] kCol = Bytes.toBytes("keyword");
-//				scan.addColumn(bColFamily, htCol);
-//				scan.addColumn(bColFamily, uCol);
-//				scan.addColumn(bColFamily, kCol);
-//				scan.setFilter(new PrefixFilter(hashtag.getBytes()));
-				ResultScanner rs = null;
-				try{
-					rs = linksTable.getScanner(scan);
-				} catch(Exception e) {
-					e.printStackTrace();
-				}
+				scan.addColumn(bColFamily, uCol);
+				scan.addColumn(bColFamily, kCol);
+				RowFilter rfilter = new RowFilter(CompareFilter.CompareOp.EQUAL, null);
+				scan.setFilter(rfilter);
+				ResultScanner rs = linksTable.getScanner(scan);
+				System.out.println("resultset excuted!");
+
 				JSONArray cacheJa = new JSONArray();
 				for (Result r = rs.next(); r != null; r = rs.next()) {
-					String ht = Bytes.toString(r.getValue(bColFamily, htCol));
-					if(!ht.equals(hashtag)) {//check whether the hashtag in Hbase exactly matches request hashtag
-						continue;      		
-					}
 					int score = 0;
+					//TODO
 					Long userid = Long.valueOf(Bytes.toString(r.getValue(bColFamily, uCol)));
 					JSONObject jo = new JSONObject(Bytes.toString(r.getValue(bColFamily, kCol)));
 					JSONObject cacheObj = new JSONObject();
@@ -163,6 +160,12 @@ public class HBaseServlet extends HttpServlet {
 					}
 				}
 				rs.close();
+		        if (linksTable != null) {
+		        	linksTable.close();
+		        }
+		        if (conn != null) {
+		            conn.close();
+		        }
 			}
 			if(pq.size() > 0) {
 				StringBuilder res = new StringBuilder();
