@@ -9,8 +9,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.FileOutputStream;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -37,7 +36,7 @@ public final class TweeterDataReducer {
 			br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
 			out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
 			while ((input = br.readLine()) != null) {
-				String[] parts = input.split("\t");
+			out.write(input + "\n");
 				tid = parts[0];
 				uid = parts[1];
 				timestamp = parts[3];
