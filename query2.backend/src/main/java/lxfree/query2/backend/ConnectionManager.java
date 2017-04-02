@@ -23,7 +23,7 @@ public class ConnectionManager {
     private static Connection conn;
     
     //HBase Configuration
-    private static String zkAddr = "172.31.22.53";
+    private static String zkAddr = "54.243.0.121";
     private static org.apache.hadoop.hbase.client.Connection hBaseconn;
     private static final Logger LOGGER = Logger.getRootLogger();
     

@@ -26,9 +26,12 @@ public class UndertowServer {
 
 	public static void main(String[] args) throws Exception {
 		try {
+//			DeploymentInfo servletBuilder = deployment().setClassLoader(UndertowServer.class.getClassLoader())
+//					.setContextPath(PATH).setDeploymentName("handler.war")
+//					.addServlets(servlet("MySqlServlet", MySqlServlet.class).addMapping("/q2"));
 			DeploymentInfo servletBuilder = deployment().setClassLoader(UndertowServer.class.getClassLoader())
 					.setContextPath(PATH).setDeploymentName("handler.war")
-					.addServlets(servlet("MySqlServlet", MySqlServlet.class).addMapping("/q2"));
+					.addServlets(servlet("HBaseSqlServlet", HBaseServlet.class).addMapping("/q2"));
 
 			DeploymentManager manager = defaultContainer().addDeployment(servletBuilder);
 			manager.deploy();

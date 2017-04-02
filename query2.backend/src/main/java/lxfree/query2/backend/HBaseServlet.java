@@ -32,9 +32,9 @@ public class HBaseServlet extends HttpServlet {
 	private static Connection conn;
 	private static String TEAMID = "LXFreee";
 	private static String TEAM_AWS_ACCOUNT_ID = "7104-6822-7247";
-	private static String TABLENAME = "q2_table";
+	private static String TABLENAME = "tweeter";
 	private final static String regex = "[0-9]+";
-	private static byte[] bColFamily = Bytes.toBytes("tweet");
+	private static byte[] bColFamily = Bytes.toBytes("data");
 	private static Map<String, JSONArray> cache = new HashMap<String, JSONArray>();
 	
     public HBaseServlet() {
@@ -115,11 +115,11 @@ public class HBaseServlet extends HttpServlet {
 				Table linksTable = conn.getTable(TableName.valueOf(TABLENAME));
 				Scan scan = new Scan();
 				byte[] htCol = Bytes.toBytes("hashtag");
-				byte[] uCol = Bytes.toBytes("user_id");
-				byte[] kCol = Bytes.toBytes("keywords");
-				scan.addColumn(bColFamily, htCol);
-				scan.addColumn(bColFamily, uCol);
-				scan.addColumn(bColFamily, kCol);
+				byte[] uCol = Bytes.toBytes("userid");
+				byte[] kCol = Bytes.toBytes("keyword");
+//				scan.addColumn(bColFamily, htCol);
+//				scan.addColumn(bColFamily, uCol);
+//				scan.addColumn(bColFamily, kCol);
 				scan.setFilter(new PrefixFilter(hashtag.getBytes()));
 				ResultScanner rs = linksTable.getScanner(scan);
 				JSONArray cacheJa = new JSONArray();
