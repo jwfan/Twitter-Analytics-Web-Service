@@ -10,6 +10,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -37,7 +41,7 @@ public class TweeterDataMapper {
 	public static void main(String[] args) {
 		BufferedReader br = null;
 		PrintWriter out = null;
-		// String fileName = System.getenv("mapreduce_map_input_file");
+//		 String fileName = System.getenv("mapreduce_map_input_file");
 //		 File file = new File("part-r-00000");
 //		 File output = new File("output");
 		 // Load stop words
@@ -103,7 +107,7 @@ public class TweeterDataMapper {
 				String date;
 				String lang;
 				String text;
-				long time;
+				String time;
 				int favorite_count;
 				int retweet_count;
 				int followers_count;
@@ -147,7 +151,14 @@ public class TweeterDataMapper {
 						continue;
 					} else {
 						// change date to unix timestamp
-						time = System.currentTimeMillis() / 1000L;
+					    SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd kk:mm:ss z yyyy");
+					    Date d = null;
+						try {
+							d = dateFormat.parse(date);
+						} catch (ParseException e) {
+							time = date;
+						}
+						time = String.valueOf(d.getTime()/1000l);
 					}
 
 					// text field is missing or empty
