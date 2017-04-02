@@ -249,7 +249,7 @@ public class TweeterDataMapper {
 					wordFreq = ",";
 				}
 				out.write(tid + "\t" + uid + "\t" + time + "\t" + textJo.toString() + "\t" + impact_score + "\t{"
-						+ wordFreq.substring(0, wordFreq.length() - 1) + "}" + "\t" + totalWrods + "\n");
+						+ wordFreq.substring(0, wordFreq.length() - 1) + "}" + "\n");
 
 			}
 		} catch (IOException e) {
