@@ -61,8 +61,8 @@ public class MySqlServlet extends HttpServlet {
 		final PrintWriter writer = response.getWriter();
 		// Load banned words which need to be censored
 		if (bannedWords.size() == 0) {
-//			InputStream bannedfile = new FileInputStream("banned_words");
-			InputStream bannedfile = MySqlServlet.class.getResourceAsStream("/banned_words");
+			InputStream bannedfile = new FileInputStream("banned_words");
+//			InputStream bannedfile = MySqlServlet.class.getResourceAsStream("/banned_words");
 			BufferedReader bannedbr = null;
 			try {
 				bannedbr = new BufferedReader(new InputStreamReader(bannedfile, StandardCharsets.UTF_8));
@@ -109,8 +109,14 @@ public class MySqlServlet extends HttpServlet {
 				double totalNum = 0;
 				while (rs.next()) {
 					String tweet = null;
-					String text = rs.getString("censored_text").replaceAll("\n", "\\\\n");
-					tweet = new JSONObject(text).getString("censored_text");
+					String text = rs.getString("censored_text");
+//					String text = rs.getString("censored_text").replaceAll("\n", "\\\\n");
+					System.out.println(text);
+//					text.replace("\"", "\\\"");
+					int length=text.length();
+					tweet=text.substring(18, length-2);
+					System.out.println(tweet);
+					//tweet = new JSONObject(text).getString("censored_text");
 					int impactScore = rs.getInt("impact_score");
 					String tweetId = rs.getString("twitter_id");
 					JSONObject keyWords = new JSONObject(rs.getString("keywords"));
