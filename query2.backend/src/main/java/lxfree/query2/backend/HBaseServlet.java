@@ -17,6 +17,7 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.filter.BinaryComparator;
 import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.filter.PrefixFilter;
@@ -121,7 +122,7 @@ public class HBaseServlet extends HttpServlet {
 				Scan scan = new Scan();
 				byte[] uCol = Bytes.toBytes("userid");
 				scan.addColumn(bColFamily, uCol);
-				RowFilter rfilter = new RowFilter(CompareFilter.CompareOp.EQUAL, null);
+				RowFilter rfilter = new RowFilter(CompareFilter.CompareOp.EQUAL, new BinaryComparator(hashtag.getBytes()));
 				scan.setFilter(rfilter);
 				ResultScanner rs = linksTable.getScanner(scan);
 				System.out.println("resultset excuted!");
@@ -131,6 +132,8 @@ public class HBaseServlet extends HttpServlet {
 					int score = 0;
 					JSONObject uob = new JSONObject(Bytes.toString(r.getValue(bColFamily, uCol)));
 					Long userid = Long.valueOf(uob.getString("user_id"));
+					System.out.println("userid:" + userid);
+					System.out.println(uob);
 					JSONObject jo = new JSONObject(uob.getString("keywords"));
 					JSONObject cacheObj = new JSONObject();
 					cacheObj.put("user_id", userid);
