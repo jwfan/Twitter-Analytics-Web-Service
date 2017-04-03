@@ -183,7 +183,7 @@ public class TweeterDataMapper {
 				//print out valid data
 				for(int i = 0; i < hashtags.length(); i++) {
 					String hashText = hashtags.getJSONObject(i).getString("text");
-					out.write(hashText + "#" + uid  + "\t" + keyWords.substring(0, keyWords.length() - 1) + "\n");
+					out.write(hashText + "\t" + uid  + "\t" + keyWords.substring(0, keyWords.length() - 1) + "\n");
 				}
 				
 			}
