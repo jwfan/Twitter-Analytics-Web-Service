@@ -120,9 +120,7 @@ public class HBaseServlet extends HttpServlet {
 				Table linksTable = conn.getTable(TableName.valueOf(TABLENAME));
 				Scan scan = new Scan();
 				byte[] uCol = Bytes.toBytes("userid");
-				byte[] kCol = Bytes.toBytes("keyword");
 				scan.addColumn(bColFamily, uCol);
-				scan.addColumn(bColFamily, kCol);
 				RowFilter rfilter = new RowFilter(CompareFilter.CompareOp.EQUAL, null);
 				scan.setFilter(rfilter);
 				ResultScanner rs = linksTable.getScanner(scan);
@@ -131,9 +129,9 @@ public class HBaseServlet extends HttpServlet {
 				JSONArray cacheJa = new JSONArray();
 				for (Result r = rs.next(); r != null; r = rs.next()) {
 					int score = 0;
-					//TODO
-					Long userid = Long.valueOf(Bytes.toString(r.getValue(bColFamily, uCol)));
-					JSONObject jo = new JSONObject(Bytes.toString(r.getValue(bColFamily, kCol)));
+					JSONObject uob = new JSONObject(Bytes.toString(r.getValue(bColFamily, uCol)));
+					Long userid = Long.valueOf(uob.getString("user_id"));
+					JSONObject jo = new JSONObject(uob.getString("keywords"));
 					JSONObject cacheObj = new JSONObject();
 					cacheObj.put("user_id", userid);
 					cacheObj.put("keywrods", jo);

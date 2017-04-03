@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class Converter {
@@ -21,10 +22,9 @@ public class Converter {
 	public static void main(String[] args) {
 		BufferedReader br = null;
 		PrintWriter out = null;
-		String fileName = args[0];
-		File file = new File(fileName);
-		File output = new File("output");
-		Map<String, String> map = new HashMap<String, String>();
+		File file = new File("output2");
+		File output = new File("output3");
+		Map<String, JSONArray> map = new HashMap<String, JSONArray>();
 		
 		 try {
 			br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
@@ -35,13 +35,16 @@ public class Converter {
 				JSONObject jo = new JSONObject();
 				jo.put(sArr[2], sArr[3]);
 				if(!map.containsKey(sArr[1])) {
-					map.put(sArr[1], jo.toString());
+					JSONArray jArr = new JSONArray();
+					jArr.put(jo);
+					map.put(sArr[1], jArr);
 				} else {
-					map.put(sArr[1], map.get(sArr[1])+jo.toString());
+					JSONArray newJArr = map.get(sArr[1]).put(jo);
+					map.put(sArr[1], newJArr);
 				}
 			}
 			
-			for(Entry<String, String> e: map.entrySet()) {
+			for(Entry<String, JSONArray> e: map.entrySet()) {
 				out.write(e.getKey() + "\t" + e.getValue() + "\n");
 			}
 		} catch (Exception e) {
