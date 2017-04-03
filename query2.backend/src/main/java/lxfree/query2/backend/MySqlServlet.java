@@ -23,7 +23,10 @@ import org.json.JSONException;
 public class MySqlServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
-	private static Connection conn;
+	private static Connection conn1;
+	private static Connection conn2;
+	private static Connection conn3;
+	private static int choose=0;
 	private static String TEAMID = "LXFreee";
 	private static String TEAM_AWS_ACCOUNT_ID = "7104-6822-7247";
 	private static String TABLENAME = "q2_table";
@@ -32,7 +35,12 @@ public class MySqlServlet extends HttpServlet {
 
 	public MySqlServlet() {
 		try {
-			conn = ConnectionManager.getConnection();
+			conn1 = ConnectionManager.getConnection(0);
+			System.out.println("Connect to database 1 done.");
+			conn2 = ConnectionManager.getConnection(1);
+			System.out.println("Connect to database 2 done.");
+			conn3 = ConnectionManager.getConnection(2);
+			System.out.println("Connect to database 3 done.");
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (SQLException e) {
@@ -107,7 +115,16 @@ public class MySqlServlet extends HttpServlet {
 		        	}
 		        } else {
 		        	String sql = "SELECT hashtag, user_id, keywords FROM " + TABLENAME + " where hashtag=?";
-		        	stmt = conn.prepareStatement(sql);
+		        	/* Decide to which database to query */
+		        	switch(choose){
+		        	case 1:stmt = conn1.prepareStatement(sql);break;
+		        	case 2:stmt = conn2.prepareStatement(sql);break;
+		        	case 3:stmt = conn3.prepareStatement(sql);break;
+		        	default:
+		        		stmt=conn1.prepareStatement(sql);
+		        	}
+		        	System.out.println("Choose database " + choose);
+		        	choose=(choose+1)%3;
 		        	stmt.setString(1, hashtag);
 		        	ResultSet rs = stmt.executeQuery();
 		        	JSONArray cacheJa = new JSONArray();
