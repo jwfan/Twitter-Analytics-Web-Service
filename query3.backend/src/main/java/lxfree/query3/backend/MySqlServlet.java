@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.Map.Entry;
 
 import javax.servlet.ServletException;
@@ -35,6 +37,7 @@ public class MySqlServlet extends HttpServlet {
 	private static String TABLENAME = "q3_table";
 //	private static String TABLENAME = "test_table";
 	private final static String regex = "[0-9]+";
+	private Pattern unicodeReg = Pattern.compile("(\\u[0-9A-Fa-f]{4})");
 	private static Map<String, Integer> bannedWords = new HashMap<String, Integer>();
 
 	public MySqlServlet() {
@@ -239,6 +242,13 @@ public class MySqlServlet extends HttpServlet {
 				while (tweetspq.peek() != null) {
 					Tweet t = tweetspq.poll();
 					StringBuilder tweetSb = new StringBuilder();
+					String tweetText = t.getText();
+					Matcher m = unicodeReg.matcher(tweetText);
+					while (m.matches()) {
+						String g = m.group();
+					    int hexVal = Integer.parseInt(g, 16);
+					    tweetText = tweetText.replaceAll(g, ((char)hexVal)+"");
+					}
 					tweetSb.append(t.getImpact_socre()).append("\t").append(t.getId()).append("\t").append(t.getText())
 							.append("\n");
 					tsb.insert(0, tweetSb);
