@@ -3,13 +3,15 @@ package lxfree.query3.mapreduce;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.io.FileOutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -28,44 +30,55 @@ public final class TweeterDataReducer {
 		String wordFreq;
 		String currenttimeuid = null;
 		String timeuid = null;
-		JSONArray valueArray;
-		// Map<String, Integer> timeuidMap = new HashMap<String, Integer>();
+		
+		
 		JSONArray jsonArray = new JSONArray();
 		JSONObject tidValue = new JSONObject();
 		try {
+			File file = new File("output");
+			File output = new File("output2");
+//			br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+//			out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8), true);
 			br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
 			out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
 			while ((input = br.readLine()) != null) {
-			out.write(input + "\n");
+				String[] parts = input.split("\t");
 				tid = parts[0];
 				uid = parts[1];
-				timestamp = parts[3];
-				text = parts[4];
-				impact_score = Integer.parseInt(parts[5]);
-				wordFreq = parts[6];
-				valueArray = new JSONArray();
+				timestamp = parts[2];
+				text = parts[3];
+				impact_score = Integer.parseInt(parts[4]);
+				wordFreq = parts[5];
 				tidValue = new JSONObject();
 				String zero13 = "0000000000000";
 				String zero19 = "0000000000000000000";
 				String timestamp13 = zero13.substring(0, 13 - timestamp.length()) + timestamp;
 				String uid19 = zero19.substring(0, 19 - uid.length()) + uid;
 				timeuid = timestamp13 + uid19;
-				JSONObject textOb = new JSONObject();
-				textOb.put("text", text);
-				valueArray.put(textOb);
-				JSONObject impact_scoreOb = new JSONObject();
-				impact_scoreOb.put("impact_score", impact_score);
-				valueArray.put(impact_scoreOb);
-				JSONObject wordFreqOb = new JSONObject();
-				wordFreqOb.put("wordFreq", wordFreq);
-				valueArray.put(wordFreqOb);
-				tidValue.put(tid, valueArray);
+				JSONObject tidOb = new JSONObject();
+				tidOb.put("text", text);
+				tidOb.put("impact_score", impact_score);
+				tidOb.put("wordFreq", wordFreq);
+				tidValue.put(tid, tidOb);
 				if (currenttimeuid != null && currenttimeuid.equals(timeuid)) {
 					jsonArray.put(tidValue);
 				} else {
 					if (currenttimeuid != null && !currenttimeuid.equals(timeuid)) {
-						out.write(currenttimeuid + "\t" + jsonArray + "\n");
-						jsonArray = null;
+						StringBuilder sb = new StringBuilder();
+						for(int i = 0; i < jsonArray.length(); i++) {
+							JSONObject jo = jsonArray.getJSONObject(i);
+							for(String key: jo.keySet()) {
+								JSONObject tidObj = jo.getJSONObject(key);
+								sb.append("[{\"").append(key).append("\":{");
+								sb.append("\"wordFreq\":").append(tidObj.getString("wordFreq")).append(",");
+								sb.append("\"impact_score\":").append(tidObj.getInt("impact_score")).append(",");
+								sb.append("\"text\":\"").append(tidObj.getString("text")).append("\"");
+								sb.append("}}]");
+							}
+						}
+						out.write(currenttimeuid + "\t" + sb + "\n");
+						jsonArray=new JSONArray();
+						jsonArray.put(tidValue);
 					} else {
 						jsonArray.put(tidValue);
 					}

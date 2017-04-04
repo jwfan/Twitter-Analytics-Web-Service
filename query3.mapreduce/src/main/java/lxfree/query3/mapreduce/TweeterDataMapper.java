@@ -43,6 +43,7 @@ public class TweeterDataMapper {
 		PrintWriter out = null;
 //		 String fileName = System.getenv("mapreduce_map_input_file");
 //		 File file = new File("part-r-00000");
+//		 File file = new File("textraw");
 //		 File output = new File("output");
 		 // Load stop words
 		if (stopWords.size() == 0) {
@@ -198,14 +199,12 @@ public class TweeterDataMapper {
 
 				// split key words and calculate the frequency
 				int EWC = 0;
-				int totalWrods = 0;
 				Matcher letterMatcher = LETTER_REGEX.matcher(shortText);
 				String group = "";
 				countMap = new HashMap<String, Integer>();
 				while (letterMatcher.find()) {
 					group = letterMatcher.group().toLowerCase();
 					if (!NO_LETTER_REGEX.matcher(group).matches()) {
-						totalWrods++;
 						if (!stopWords.containsKey(group)) {
 							EWC++;
 							if (countMap.containsKey(group)) {
@@ -248,7 +247,9 @@ public class TweeterDataMapper {
 				if(wordFreq.length() == 0) {
 					wordFreq = ",";
 				}
-				out.write(tid + "\t" + uid + "\t" + time + "\t" + textJo.toString() + "\t" + impact_score + "\t{"
+				text = text.replaceAll("\n", "\\\\n");
+				text = text.replaceAll("\r", "\\\\r");
+				out.write(tid + "\t" + uid + "\t" + time + "\t" + text + "\t" + impact_score + "\t{"
 						+ wordFreq.substring(0, wordFreq.length() - 1) + "}" + "\n");
 
 			}

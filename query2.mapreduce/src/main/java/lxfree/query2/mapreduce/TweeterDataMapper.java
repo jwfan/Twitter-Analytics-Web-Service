@@ -172,8 +172,8 @@ public class TweeterDataMapper {
 				Matcher m = p.matcher(text);
 				String keyword;
 				while(m.find()) {
-					keyword = m.group().toLowerCase();
-					if(!stopWords.containsKey(keyword)) {
+					keyword = m.group();
+					if(!stopWords.containsKey(keyword.toLowerCase())) {
 						keyWords.append(keyword).append(",");						
 					}
 				}
