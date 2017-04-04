@@ -23,8 +23,6 @@ public final class TweeterDataReducer {
 		PrintWriter out = null;
 		String input;
 		String tid;
-		String uid;
-		String timestamp;
 		String text;
 		int impact_score;
 		String wordFreq;
@@ -35,26 +33,21 @@ public final class TweeterDataReducer {
 		JSONArray jsonArray = new JSONArray();
 		JSONObject tidValue = new JSONObject();
 		try {
-			File file = new File("output");
-			File output = new File("output2");
+//			File file = new File("output");
+//			File file = new File("test");
+//			File output = new File("output2");
 //			br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
 //			out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8), true);
 			br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
 			out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
 			while ((input = br.readLine()) != null) {
 				String[] parts = input.split("\t");
-				tid = parts[0];
-				uid = parts[1];
-				timestamp = parts[2];
-				text = parts[3];
-				impact_score = Integer.parseInt(parts[4]);
-				wordFreq = parts[5];
+				timeuid = parts[0];
+				tid = parts[1];
+				text = parts[2];
+				impact_score = Integer.parseInt(parts[3]);
+				wordFreq = parts[4];
 				tidValue = new JSONObject();
-				String zero13 = "0000000000000";
-				String zero19 = "0000000000000000000";
-				String timestamp13 = zero13.substring(0, 13 - timestamp.length()) + timestamp;
-				String uid19 = zero19.substring(0, 19 - uid.length()) + uid;
-				timeuid = timestamp13 + uid19;
 				JSONObject tidOb = new JSONObject();
 				tidOb.put("text", text);
 				tidOb.put("impact_score", impact_score);
@@ -65,16 +58,32 @@ public final class TweeterDataReducer {
 				} else {
 					if (currenttimeuid != null && !currenttimeuid.equals(timeuid)) {
 						StringBuilder sb = new StringBuilder();
+						sb.append("[");
 						for(int i = 0; i < jsonArray.length(); i++) {
 							JSONObject jo = jsonArray.getJSONObject(i);
 							for(String key: jo.keySet()) {
 								JSONObject tidObj = jo.getJSONObject(key);
-								sb.append("[{\"").append(key).append("\":{");
+								sb.append("{\"").append(key).append("\":{");
 								sb.append("\"wordFreq\":").append(tidObj.getString("wordFreq")).append(",");
 								sb.append("\"impact_score\":").append(tidObj.getInt("impact_score")).append(",");
-								sb.append("\"text\":\"").append(tidObj.getString("text")).append("\"");
-								sb.append("}}]");
+								text = tidObj.getString("text");
+								text = text.replaceAll("\\\\", "\\\\\\\\");
+								text = text.replaceAll("/", "\\\\/");
+								text = text.replaceAll("\"", "\\\\\"");
+								text = text.replaceAll("\'","\\\'");
+								sb.append("\"text\":\"").append(text).append("\"");
+								sb.append("}}");
 							}
+							if(i != jsonArray.length()-1) {
+								sb.append(",");
+							}
+						}
+						sb.append("]");
+						try{
+							JSONArray ja = new JSONArray(sb.toString());						
+						} catch(Exception e) {
+							System.out.println(sb);
+							e.printStackTrace();
 						}
 						out.write(currenttimeuid + "\t" + sb + "\n");
 						jsonArray=new JSONArray();
@@ -87,7 +96,26 @@ public final class TweeterDataReducer {
 			}
 			if (currenttimeuid != null && currenttimeuid.equals(timeuid)) {
 				jsonArray.put(tidValue);
-				out.write(currenttimeuid + "\t" + jsonArray + "\n");
+				StringBuilder sb = new StringBuilder();
+				sb.append("[");
+				for(int i = 0; i < jsonArray.length(); i++) {
+					JSONObject jo = jsonArray.getJSONObject(i);
+					for(String key: jo.keySet()) {
+						JSONObject tidObj = jo.getJSONObject(key);
+						sb.append("{\"").append(key).append("\":{");
+						sb.append("\"wordFreq\":").append(tidObj.getString("wordFreq")).append(",");
+						sb.append("\"impact_score\":").append(tidObj.getInt("impact_score")).append(",");
+						text = tidObj.getString("text");
+						text = text.replaceAll("\"", "\\\"");
+						sb.append("\"text\":\"").append(text).append("\"");
+						sb.append("}}");
+					}
+					if(i != jsonArray.length()-1) {
+						sb.append(",");
+					}
+				}
+				sb.append("]");
+				out.write(currenttimeuid + "\t" + sb + "\n");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
