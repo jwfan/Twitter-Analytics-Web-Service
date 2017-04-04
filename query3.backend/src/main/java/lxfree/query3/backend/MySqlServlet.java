@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class MySqlServlet extends HttpServlet {
@@ -39,7 +40,11 @@ public class MySqlServlet extends HttpServlet {
 	private final static String regex = "[0-9]+";
 	private Pattern unicodeReg = Pattern.compile("(\\u[0-9A-Fa-f]{4})");
 	private static Map<String, Integer> bannedWords = new HashMap<String, Integer>();
-
+	private static String shardBase1="";
+	private static String shardBase2="";
+	private static Integer roundRobin1=0;
+	private static Integer roundRobin2=0;
+	private static Integer roundRobin3=0;
 	public MySqlServlet() {
 		try {
 			conn = ConnectionManager.getConnection();
@@ -49,7 +54,18 @@ public class MySqlServlet extends HttpServlet {
 			e.printStackTrace();
 		}
 	}
-
+	public int shardMap(String tuid){
+		if(tuid.compareTo(shardBase1)<0){
+			return 0+(roundRobin1++)%2;
+		}
+		if(tuid.compareTo(shardBase1)>0&&tuid.compareTo(shardBase2)<0){
+			return 2+(roundRobin2++)%2;
+		}
+		else if(tuid.compareTo(shardBase2)>0){
+			return 4+(roundRobin3++)%2;
+		}
+		return 0;
+	}
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
 			throws ServletException, IOException {
@@ -59,6 +75,8 @@ public class MySqlServlet extends HttpServlet {
 		final String endUid = request.getParameter("uid_end");
 		final String maxTopicWords = request.getParameter("n1");
 		final String maxTweets = request.getParameter("n2");
+		final String startTUid = startTime+startUid;
+		final String endTUid = endTime+endUid;
 		response.setStatus(200);
 		response.setContentType("text/plain;charset=UTF-8");
 		final PrintWriter writer = response.getWriter();
@@ -95,15 +113,13 @@ public class MySqlServlet extends HttpServlet {
 		} else {
 			PreparedStatement stmt = null;
 			try {
-				String sql = "SELECT twitter_id, censored_text, impact_score, keywords FROM " + TABLENAME
-						+ " WHERE time_stamp>=? AND time_stamp<=? and user_id>=? and user_id<=?";
+				String sql = "SELECT text FROM " + TABLENAME
+						+ " WHERE tuid>=? AND tuid<=?";
 //				String sql = "SELECT twitter_id, censored_text, impact_score, keywords FROM " + TABLENAME
 //						+ " WHERE twitter_id=?";
 				stmt = conn.prepareStatement(sql);
-				stmt.setString(1, startTime);
-				stmt.setString(2, endTime);
-				stmt.setString(3, startUid);
-				stmt.setString(4, endUid);
+				stmt.setString(1, startTUid);
+				stmt.setString(2, endTUid);
 				// key word topic score
 				Map<String, KeyWordTweets> wordsCount = new HashMap<String, KeyWordTweets>();
 				// remove replicated tweets
@@ -112,10 +128,12 @@ public class MySqlServlet extends HttpServlet {
 				double totalNum = 0;
 				while (rs.next()) {
 					String tweet = null;
-					String text = rs.getString("censored_text");
+					String text = rs.getString("text");
 //					String text = rs.getString("censored_text").replaceAll("\n", "\\\\n");
 					System.out.println(text);
 //					text.replace("\"", "\\\"");
+					JSONArray jArr=new JSONArray(text);
+					
 					int length=text.length();
 					tweet=text.substring(18, length-2);
 					System.out.println(tweet);
