@@ -56,15 +56,19 @@ public class HBaseServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
 
         final String hashtag = request.getParameter("hashtag");
         final String N = request.getParameter("N");
         final String keywordslist = request.getParameter("list_of_key_words");
-        final PrintWriter writer = response.getWriter();
         response.setStatus(200);
         response.setContentType("text/plain;charset=UTF-8");
+        PrintWriter writer = null;
+		try {
+			writer = response.getWriter();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
         String result = TEAMID + "," + TEAM_AWS_ACCOUNT_ID + "\n";
         
 		if("".equals(hashtag) || "".equals(keywordslist) || !N.matches(regex)) {
@@ -94,14 +98,11 @@ public class HBaseServlet extends HttpServlet {
 	        	for(int i = 0; i < cacheRes.length(); i++) {
 	        		JSONObject jo = cacheRes.getJSONObject(i);
 	        		Long userid = jo.getLong("user_id");
-	        		JSONObject cacheKW = jo.getJSONObject("keywrods");
+	        		Map<String, Integer> cacheKW = (Map<String, Integer>) jo.get("keywrods");
 	        		int score = 0;
 					for (int j = 0; i < keywords.length; j++) {
-						try {
-							score += cacheKW.getInt(keywords[j]);
-						} catch (JSONException e) {
-							continue;
-						}
+						score += cacheKW.get(keywords[j]);
+						System.out.println("cache get:" + keywords[i] + "," + cacheKW.get(keywords[j]));
 					}
 					KVPair entry = new KVPair(userid, score);
 					if (pq.size() < n) {
@@ -118,49 +119,82 @@ public class HBaseServlet extends HttpServlet {
 					}
 	        	}
 			}else {
-				Table linksTable = conn.getTable(TableName.valueOf(TABLENAME));
+				Table linksTable = null;
+				try {
+					linksTable = conn.getTable(TableName.valueOf(TABLENAME));
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				Scan scan = new Scan();
 				byte[] uCol = Bytes.toBytes("userid");
 				scan.addColumn(bColFamily, uCol);
 				RowFilter rfilter = new RowFilter(CompareFilter.CompareOp.EQUAL, new BinaryComparator(hashtag.getBytes()));
 				scan.setFilter(rfilter);
-				ResultScanner rs = linksTable.getScanner(scan);
+				ResultScanner rs = null;
+				try {
+					rs = linksTable.getScanner(scan);
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
 				System.out.println("resultset excuted!");
-
 				JSONArray cacheJa = new JSONArray();
 				for (Result r = rs.next(); r != null; r = rs.next()) {
-					int score = 0;
-					JSONObject uob = new JSONObject(Bytes.toString(r.getValue(bColFamily, uCol)));
-					Long userid = Long.valueOf(uob.getString("user_id"));
-					System.out.println("userid:" + userid);
-					System.out.println(uob);
-					JSONObject jo = new JSONObject(uob.getString("keywords"));
-					JSONObject cacheObj = new JSONObject();
-					cacheObj.put("user_id", userid);
-					cacheObj.put("keywrods", jo);
-					cacheJa.put(cacheObj);
-					for(int i = 0; i < keywords.length; i++) {
-						try{
-							score += jo.getInt(keywords[i]);
-						} catch (JSONException e) {
-							continue;
-						}
+					System.out.println("Enter loop!");
+					String uobStr = Bytes.toString(r.getValue(bColFamily, uCol));
+					System.out.println(uobStr);
+					JSONArray uobArr = null;
+					try{
+						uobArr = new JSONArray(uobStr);
+					} catch(Exception e) {
+						e.printStackTrace();
 					}
-					KVPair entry = new KVPair(userid, score);
-					if(pq.size() < n) {
-						pq.add(entry);
-					} else {
-						KVPair peek = pq.peek();
-						if(peek.getValue() < entry.getValue()) {
-							pq.poll();
-							pq.add(entry);
-						} else if(peek.getValue() == entry.getValue() && peek.getKey() > entry.getKey()) {
-							pq.poll();
-							pq.add(entry);
+					for(int i = 0; i < uobArr.length(); i++) {
+						JSONObject uob = uobArr.getJSONObject(i);
+						int score = 0;
+						for(String key: uob.keySet()) {
+							Long userid = Long.valueOf(key);
+							System.out.println("userid:" + userid);
+							System.out.println(uob.toString());
+							String[] allKeyWords = uob.getString(key).split(",");
+							Map<String, Integer> map = new HashMap<String, Integer>();
+							for(int k = 0; k < allKeyWords.length; k++) {
+								String keyword = allKeyWords[k];
+								if(!map.containsKey(keyword)) {
+									map.put(keyword, 1);
+								} else {
+									map.put(keyword, map.get(keyword)+1);
+								}
+								System.out.println(keyword);
+							}
+							JSONObject cacheObj = new JSONObject();
+							cacheObj.put("user_id", userid);
+							cacheObj.put("keywrods", map);
+							cacheJa.put(cacheObj);
+							cache.put(hashtag, cacheJa);
+							for(int j = 0; j < keywords.length; j++) {
+								if(map.containsKey(keywords[j])) {
+									score += map.get(keywords[j]);
+								}
+							}
+							KVPair entry = new KVPair(userid, score);
+							if(pq.size() < n) {
+								pq.add(entry);
+							} else {
+								KVPair peek = pq.peek();
+								if(peek.getValue() < entry.getValue()) {
+									pq.poll();
+									pq.add(entry);
+								} else if(peek.getValue() == entry.getValue() && peek.getKey() > entry.getKey()) {
+									pq.poll();
+									pq.add(entry);
+								}
+							}
 						}
 					}
 				}
 				rs.close();
+				System.out.println("ResultSet finished!");
 		        if (linksTable != null) {
 		        	linksTable.close();
 		        }
@@ -177,6 +211,7 @@ public class HBaseServlet extends HttpServlet {
 				}
 				result += res.substring(0, res.length() - 1) + "\n";
 			}
+			System.out.println("result:" + result);
 			writer.write(result);
 			writer.close();
 			}
