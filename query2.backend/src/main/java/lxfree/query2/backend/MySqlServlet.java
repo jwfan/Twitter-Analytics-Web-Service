@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.PriorityQueue;
 
 import javax.servlet.ServletException;
@@ -29,6 +30,8 @@ public class MySqlServlet extends HttpServlet {
 	private static int choose=0;
 	private static String TEAMID = "LXFreee";
 	private static String TEAM_AWS_ACCOUNT_ID = "7104-6822-7247";
+	// for test
+	//private static String TABLENAME = "test_table";
 	private static String TABLENAME = "q2_table";
 	private final static String regex = "[0-9]+";
 	private static Map<String, JSONArray> cache = new HashMap<String, JSONArray>();
@@ -36,11 +39,11 @@ public class MySqlServlet extends HttpServlet {
 	public MySqlServlet() {
 		try {
 			conn1 = ConnectionManager.getConnection(0);
-			System.out.println("Connect to database 1 done.");
+			//System.out.println("Connect to database 1 done.");
 			conn2 = ConnectionManager.getConnection(1);
-			System.out.println("Connect to database 2 done.");
+			//System.out.println("Connect to database 2 done.");
 			conn3 = ConnectionManager.getConnection(2);
-			System.out.println("Connect to database 3 done.");
+			//System.out.println("Connect to database 3 done.");
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (SQLException e) {
@@ -61,11 +64,17 @@ public class MySqlServlet extends HttpServlet {
 		String result = TEAMID + "," + TEAM_AWS_ACCOUNT_ID + "\n";
 		// invalid parameter check
 		if ("".equals(hashtag) || "".equals(keywordslist) || !N.matches(regex)) {
+			//System.out.println("Malformed!");
 			writer.write(result);
 			writer.close();
 		} else {
+			/* get n and keywords list from request args */
 			int n = Integer.valueOf(N);
 			String[] keywords = keywordslist.split(",");
+			HashMap<String, Integer> keywordsSet=new HashMap<String, Integer>();
+			for(int i=0; i<keywords.length;i++){
+				keywordsSet.put(keywords[i], 1);
+			}
 			PriorityQueue<KVPair> pq = new PriorityQueue<KVPair>(11, new Comparator<KVPair>() {
 				@Override
 				public int compare(KVPair o1, KVPair o2) {
@@ -123,7 +132,7 @@ public class MySqlServlet extends HttpServlet {
 		        	default:
 		        		stmt=conn1.prepareStatement(sql);
 		        	}
-		        	System.out.println("Choose database " + choose);
+		        	//System.out.println("Choose database " + choose);
 		        	choose=(choose+1)%3;
 		        	stmt.setString(1, hashtag);
 		        	ResultSet rs = stmt.executeQuery();
@@ -131,18 +140,37 @@ public class MySqlServlet extends HttpServlet {
 					while (rs.next()) {
 						int score = 0;
 						Long userid = Long.valueOf(rs.getString("user_id"));
-						JSONObject jo = new JSONObject(rs.getString("keywords"));
+						/* get effective word count */
+						String userKeywordsList=rs.getString("keywords");
+						String[] userKeywords=userKeywordsList.split(",");
+						HashMap<String, Integer> userKeywordsMap=new HashMap<String, Integer>();
+						for(int i=0;i<userKeywords.length;i++){
+							if(userKeywordsMap.containsKey(userKeywords[i])){
+								int wordCount=userKeywordsMap.get(userKeywords[i])+1;
+								userKeywordsMap.put(userKeywords[i], wordCount);
+							}else{
+								userKeywordsMap.put(userKeywords[i], 1);
+							}
+						}
+						JSONObject jo=new JSONObject();
+						for(Entry<String, Integer> entry:userKeywordsMap.entrySet()){
+							if(keywordsSet.containsKey(entry.getKey())){
+								score+=entry.getValue();
+							}
+							jo.put(entry.getKey(), entry.getValue());
+						}
+						//JSONObject jo = new JSONObject(rs.getString("keywords"));
 						JSONObject cacheObj = new JSONObject();
 						cacheObj.put("user_id", userid);
 						cacheObj.put("keywrods", jo);
 						cacheJa.put(cacheObj);
-						for (int i = 0; i < keywords.length; i++) {
+						/*for (int i = 0; i < keywords.length; i++) {
 							try {
 								score += jo.getInt(keywords[i]);
 							} catch (JSONException e) {
 								continue;
 							}
-						}
+						}*/
 						KVPair entry = new KVPair(userid, score);
 						if (pq.size() < n) {
 							pq.add(entry);

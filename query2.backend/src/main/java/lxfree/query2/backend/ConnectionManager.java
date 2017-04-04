@@ -17,12 +17,14 @@ import org.apache.log4j.Logger;
 public class ConnectionManager {
 	//Mysql configuration
     private static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
+    // for test
+    //private static final String DB_NAME = "test_db";
     private static final String DB_NAME = "q2_db";
     /* The DNS address of 3 replica mysql databases
      * remember to contain '/' at the end of the address! */
-    private static final String DNS1="";
-    private static final String DNS2="";
-    private static final String DNS3="";
+    private static final String DNS1="ec2-54-159-193-193.compute-1.amazonaws.com/";
+    private static final String DNS2="ec2-54-89-160-159.compute-1.amazonaws.com/";
+    private static final String DNS3="ec2-54-89-160-159.compute-1.amazonaws.com/";
     private static final String URL1 = "jdbc:mysql://" + DNS1 + DB_NAME + "?useSSL=false";
     private static final String URL2 = "jdbc:mysql://" + DNS2 + DB_NAME + "?useSSL=false";
     private static final String URL3 = "jdbc:mysql://" + DNS3 + DB_NAME + "?useSSL=false";
