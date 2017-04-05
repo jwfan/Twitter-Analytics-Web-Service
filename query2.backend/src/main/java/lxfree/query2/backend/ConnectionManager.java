@@ -28,8 +28,8 @@ public class ConnectionManager {
     private static final String URL1 = "jdbc:mysql://" + DNS1 + DB_NAME + "?useSSL=false";
     private static final String URL2 = "jdbc:mysql://" + DNS2 + DB_NAME + "?useSSL=false";
     private static final String URL3 = "jdbc:mysql://" + DNS3 + DB_NAME + "?useSSL=false";
-    private static final String DB_USER = "root";
-    private static final String DB_PWD = "CClxfreee";
+    private static String user="";
+    private static String pwd="";
     /* Connection to 3 replica mysql databases */
     private static Connection conn1;
     private static Connection conn2;
@@ -48,9 +48,11 @@ public class ConnectionManager {
      */
     private static void initializeConnection() throws ClassNotFoundException, SQLException {
         Class.forName(JDBC_DRIVER);
-        conn1 = DriverManager.getConnection(URL1, DB_USER, DB_PWD);
-        conn2 = DriverManager.getConnection(URL2, DB_USER, DB_PWD);
-        conn3 = DriverManager.getConnection(URL3, DB_USER, DB_PWD);
+        user=System.getProperty("user");
+        pwd=System.getProperty("passowrd");
+        conn1 = DriverManager.getConnection(URL1, user, pwd);
+        conn2 = DriverManager.getConnection(URL2, user, pwd);
+        conn3 = DriverManager.getConnection(URL3, user, pwd);
     }
     
     /**

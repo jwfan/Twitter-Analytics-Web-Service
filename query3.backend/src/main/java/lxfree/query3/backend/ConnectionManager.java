@@ -32,8 +32,8 @@ public class ConnectionManager {
     private static final String URL2_2 = "jdbc:mysql://" + DNS2_2 + DB_NAME + "?useSSL=false";
     private static final String URL1_3 = "jdbc:mysql://" + DNS2_3 + DB_NAME + "?useSSL=false";
     private static final String URL2_3 = "jdbc:mysql://" + DNS2_3 + DB_NAME + "?useSSL=false";
-    private static final String DB_USER = "root";
-    private static final String DB_PWD = "CClxfreee";
+    private static String user="";
+    private static String pwd = "";
     /* jdbc connection */
 	private static Connection conn1_1;
     private static Connection conn2_1;
@@ -56,12 +56,14 @@ public class ConnectionManager {
     private static void initializeConnection() throws ClassNotFoundException, SQLException {
         Class.forName(JDBC_DRIVER);
         /* Initialize jdbc connections */
-        conn1_1 = DriverManager.getConnection(URL1_1, DB_USER, DB_PWD);
-        conn2_1 = DriverManager.getConnection(URL2_1, DB_USER, DB_PWD);
-        conn1_2 = DriverManager.getConnection(URL1_2, DB_USER, DB_PWD);
-        conn2_2 = DriverManager.getConnection(URL2_2, DB_USER, DB_PWD);
-        conn1_3 = DriverManager.getConnection(URL1_3, DB_USER, DB_PWD);
-        conn2_3 = DriverManager.getConnection(URL2_3, DB_USER, DB_PWD);
+        user=System.getProperty("user");
+        pwd=System.getProperty("passowrd");
+        conn1_1 = DriverManager.getConnection(URL1_1, user, pwd);
+        conn2_1 = DriverManager.getConnection(URL2_1, user, pwd);
+        conn1_2 = DriverManager.getConnection(URL1_2, user, pwd);
+        conn2_2 = DriverManager.getConnection(URL2_2, user, pwd);
+        conn1_3 = DriverManager.getConnection(URL1_3, user, pwd);
+        conn2_3 = DriverManager.getConnection(URL2_3, user, pwd);
     }
     
     /**
