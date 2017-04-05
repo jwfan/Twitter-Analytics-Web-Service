@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Map.Entry;
@@ -32,28 +33,202 @@ import org.json.JSONObject;
 public class MySqlServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
-	private static Connection conn;
 	private static String TEAMID = "LXFreee";
 	private static String TEAM_AWS_ACCOUNT_ID = "7104-6822-7247";
 	private static String TABLENAME = "q3_table";
-//	private static String TABLENAME = "test_table";
 	private final static String regex = "[0-9]+";
 	private Pattern unicodeReg = Pattern.compile("(\\u[0-9A-Fa-f]{4})");
 	private static Map<String, Integer> bannedWords = new HashMap<String, Integer>();
-	private static String shardBase1="";
-	private static String shardBase2="";
+	private static String shardBase1="00013999096180000000000024283520";
+	private static String shardBase2="00014825227340000000000227019820";
 	private static Integer roundRobin1=0;
 	private static Integer roundRobin2=0;
 	private static Integer roundRobin3=0;
-	public MySqlServlet() {
-		try {
-			conn = ConnectionManager.getConnection();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (SQLException e) {
-			e.printStackTrace();
+	/* Whether each part of the database need to be queried */
+	private static boolean q1Flag=false;
+	private static boolean q2Flag=false;
+	private static boolean q3Flag=false;
+	private static ConcurrentHashMap<String, KeyWordTweets> wordsCount = new ConcurrentHashMap<String, KeyWordTweets>();
+	private static Double totalNum=0.0;
+	/* Whether each part of the database has been queried */
+	private static boolean q1Done=false;
+	private static boolean q2Done=false;
+	private static boolean q3Done=false;
+	private static Object lock;
+	
+	/**
+	 * Check whether each part of the database needed to be queried
+	 * and set the corresponding flag
+	 */
+	public void setQryFlag(String startTUid, String endTUid){
+		/* the 1st part of the database */
+		if(startTUid.compareTo(shardBase1)<0){
+			q1Flag=true;
+			/* the 2nd part of the database */
+			if(endTUid.compareTo(shardBase1)<0){
+				q2Flag=false;
+				/* the 3rd part of the database */
+				q3Flag=false;
+			}else{
+				q2Flag=true;
+				/* the 3rd part of the database */
+				if(endTUid.compareTo(shardBase2)<0){
+					q3Flag=false;
+				}else{
+					q3Flag=true;
+				}
+			}
+		}else{
+			q1Flag=false;
+			/* the 2nd part of the database */
+			if(startTUid.compareTo(shardBase2)<0){
+				q2Flag=true;
+				/* the 3rd part of the database */
+				if(endTUid.compareTo(shardBase2)<0){
+					q3Flag=false;
+				}else{
+					q3Flag=true;
+				}
+			}else{
+				q2Flag=false;
+				/* the 3rd part of the database */
+				q3Flag=true;
+			}
 		}
 	}
+	
+	/**
+	 * Query the 3 sub-databases according to query flags
+	 */
+	public void qryDB(final String startTUid, final String endTUid){
+		q1Done=false;
+		q2Done=false;
+		q3Done=false;
+		/* Query the 1st sub-database */
+		Thread t1 = new Thread(new Runnable() {
+			public void run() {
+				if(q1Flag==false){
+					/* No need to query sub-database 1 */
+					synchronized(lock){
+						q1Done=true;
+						lock.notifyAll();
+					}
+				}else{
+					/* Check the query range */
+					if(q2Flag==true){
+						qrySingleDB(startTUid, shardBase1, roundRobin1);
+						roundRobin1=(roundRobin1+1)%2;
+					}else{
+						qrySingleDB(startTUid, endTUid, roundRobin1);
+						roundRobin1=(roundRobin1+1)%2;
+					}
+				}
+				System.out.println("sub-db 1 query done.");
+			}
+		});
+		
+		/* Query the 2nd sub-database */
+		Thread t2 = new Thread(new Runnable() {
+			public void run() {
+				if(q2Flag==false){
+					/* No need to query sub-database 1 */
+					synchronized(lock){
+						q2Done=true;
+						lock.notifyAll();
+					}
+				}else{
+					/* Check the query range */
+					if(q1Flag&&q3Flag){
+						qrySingleDB(startTUid, endTUid, roundRobin2);
+						roundRobin2=(roundRobin2+1)%2+2;
+					}else if(q1Flag&&!q3Flag){
+						qrySingleDB(shardBase1, endTUid, roundRobin2);
+						roundRobin2=(roundRobin2+1)%2+2;
+					}else if(!q1Flag&&q3Flag){
+						qrySingleDB(startTUid, shardBase2, roundRobin2);
+						roundRobin2=(roundRobin2+1)%2+2;
+					}else{
+						qrySingleDB(startTUid, endTUid, roundRobin2);
+						roundRobin2=(roundRobin2+1)%2+2;
+					}
+				}
+				System.out.println("sub-db 2 query done.");
+			}
+		});
+		
+		Thread t3 = new Thread(new Runnable() {
+			public void run() {
+				if(q3Flag==false){
+					/* No need to query sub-database 1 */
+					synchronized(lock){
+						q3Done=true;
+						lock.notifyAll();
+					}
+				}else{
+					/* Check the query range */
+					if(q2Flag){
+						qrySingleDB(shardBase2, endTUid, roundRobin3);
+						roundRobin3=(roundRobin3+1)%2+4;
+					}else{
+						qrySingleDB(startTUid, endTUid, roundRobin2);
+						roundRobin3=(roundRobin3+1)%2+4;
+					}
+				}
+				System.out.println("sub-db 3 query done.");
+			}
+		});
+	}
+	
+	/**
+	 * query a single sub-database
+	 */
+	public void qrySingleDB(String startTUid, String endTUid, int choose){
+		Connection conn=null;
+		PreparedStatement stmt = null;
+		try {
+			conn = ConnectionManager.getConnection(choose);
+			String sql = "SELECT text FROM " + TABLENAME
+					+ " WHERE tu_id>=? AND tu_id<=?";
+			stmt = conn.prepareStatement(sql);
+			stmt.setString(1, startTUid);
+			stmt.setString(2, endTUid);
+			// remove replicated tweets
+			
+			ResultSet rs = stmt.executeQuery();
+			
+			while (rs.next()) {
+				String tweet = null;
+				String text = rs.getString("text");
+				System.out.println(text);
+				JSONArray jArr=new JSONArray(text);
+				
+				int length=text.length();
+				tweet=text.substring(18, length-2);
+				System.out.println(tweet);
+				int impactScore = rs.getInt("impact_score");
+				String tweetId = rs.getString("twitter_id");
+				JSONObject keyWords = new JSONObject(rs.getString("keywords"));
+				for (String key : keyWords.keySet()) {
+					if (wordsCount.containsKey(key)) {
+						wordsCount.get(key).addTweetsNum();
+						wordsCount.get(key).addTweet(new Tweet(tweetId, tweet, impactScore, keyWords.getInt(key)));
+					} else {
+						KeyWordTweets list = new KeyWordTweets(1);
+						list.addTweet(new Tweet(tweetId, tweet, impactScore, keyWords.getInt(key)));
+						wordsCount.putIfAbsent(key, list);
+					}
+				}
+				synchronized(totalNum){
+					totalNum++;
+				}
+			}
+		} catch (ClassNotFoundException | SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
 	public int shardMap(String tuid){
 		if(tuid.compareTo(shardBase1)<0){
 			return 0+(roundRobin1++)%2;
@@ -75,8 +250,6 @@ public class MySqlServlet extends HttpServlet {
 		final String endUid = request.getParameter("uid_end");
 		final String maxTopicWords = request.getParameter("n1");
 		final String maxTweets = request.getParameter("n2");
-		final String startTUid = startTime+startUid;
-		final String endTUid = endTime+endUid;
 		response.setStatus(200);
 		response.setContentType("text/plain;charset=UTF-8");
 		final PrintWriter writer = response.getWriter();
@@ -111,48 +284,26 @@ public class MySqlServlet extends HttpServlet {
 			writer.write(result);
 			writer.close();
 		} else {
-			PreparedStatement stmt = null;
+			String zero13 = "0000000000000";
+			String zero19 = "0000000000000000000";
+			String timestamp13 = zero13.substring(0, 13 - startTime.length()) + startTime;
+			String uid19 = zero19.substring(0, 19 - startUid.length()) + startUid;
+			final String startTUid = timestamp13+uid19;
+			timestamp13 = zero13.substring(0, 13 - endTime.length()) + endTime;
+			uid19 = zero19.substring(0, 19 - endUid.length()) + endUid;
+			final String endTUid = timestamp13+uid19;
+			wordsCount = new ConcurrentHashMap<String, KeyWordTweets>();
+			Map<String, Integer> tweetsHash = new HashMap<String, Integer>();
+			totalNum = 0.0;
+			/* 
+			 * set query flag 
+			 */
+			setQryFlag(startTUid, endTUid);
 			try {
-				String sql = "SELECT text FROM " + TABLENAME
-						+ " WHERE tuid>=? AND tuid<=?";
-//				String sql = "SELECT twitter_id, censored_text, impact_score, keywords FROM " + TABLENAME
-//						+ " WHERE twitter_id=?";
-				stmt = conn.prepareStatement(sql);
-				stmt.setString(1, startTUid);
-				stmt.setString(2, endTUid);
-				// key word topic score
-				Map<String, KeyWordTweets> wordsCount = new HashMap<String, KeyWordTweets>();
-				// remove replicated tweets
-				Map<String, Integer> tweetsHash = new HashMap<String, Integer>();
-				ResultSet rs = stmt.executeQuery();
-				double totalNum = 0;
-				while (rs.next()) {
-					String tweet = null;
-					String text = rs.getString("text");
-//					String text = rs.getString("censored_text").replaceAll("\n", "\\\\n");
-					System.out.println(text);
-//					text.replace("\"", "\\\"");
-					JSONArray jArr=new JSONArray(text);
-					
-					int length=text.length();
-					tweet=text.substring(18, length-2);
-					System.out.println(tweet);
-					//tweet = new JSONObject(text).getString("censored_text");
-					int impactScore = rs.getInt("impact_score");
-					String tweetId = rs.getString("twitter_id");
-					JSONObject keyWords = new JSONObject(rs.getString("keywords"));
-					for (String key : keyWords.keySet()) {
-						if (wordsCount.containsKey(key)) {
-							wordsCount.get(key).addTweetsNum();
-							wordsCount.get(key).addTweet(new Tweet(tweetId, tweet, impactScore, keyWords.getInt(key)));
-						} else {
-							KeyWordTweets list = new KeyWordTweets(1);
-							list.addTweet(new Tweet(tweetId, tweet, impactScore, keyWords.getInt(key)));
-							wordsCount.put(key, list);
-						}
-					}
-					totalNum++;
-				}
+				/*
+				 * Query the 3 sub-databases
+				 */
+				qryDB(startTUid, endTUid);				
 				// Store the top n1 topic words
 				PriorityQueue<KeyWordScore> pq = new PriorityQueue<KeyWordScore>(11, new Comparator<KeyWordScore>() {
 					@Override
@@ -185,32 +336,43 @@ public class MySqlServlet extends HttpServlet {
 						}
 					}
 				});
-				// calculate the topic socre and put in the priority queue
-				for (Entry<String, KeyWordTweets> entry : wordsCount.entrySet()) {
-					double topicScore = 0.0;
-					KeyWordTweets kwt = entry.getValue();
-					int tweetsNum = kwt.getTweetsNum();
-					double idf = Math.log(totalNum / tweetsNum);
-					List<Tweet> tweetList = new ArrayList<Tweet>();
-					for (Tweet t : kwt.getTweets()) {
-						topicScore += t.getKeyWordsFreq() * idf * Math.log(t.getImpact_socre() + 1);
-						tweetList.add(t);
+				
+				/*
+				 * Wait for the query operations to synchronize
+				 */
+				synchronized(lock){
+					while(q1Done==false || q2Done==false || q3Done==false){
+						System.out.println("Waiting for query to finish...");
+						lock.wait();
 					}
-					KeyWordScore s = new KeyWordScore(entry.getKey(), topicScore, tweetList);
-					if (pq.size() < Integer.valueOf(maxTopicWords)) {
-						pq.add(s);
-					} else {
-						KeyWordScore peek = pq.peek();
-						if (peek.getTopicScore() < s.getTopicScore()) {
-							pq.poll();
+					// calculate the topic socre and put in the priority queue
+					for (Entry<String, KeyWordTweets> entry : wordsCount.entrySet()) {
+						double topicScore = 0.0;
+						KeyWordTweets kwt = entry.getValue();
+						int tweetsNum = kwt.getTweetsNum();
+						double idf = Math.log(totalNum / tweetsNum);
+						List<Tweet> tweetList = new ArrayList<Tweet>();
+						for (Tweet t : kwt.getTweets()) {
+							topicScore += t.getKeyWordsFreq() * idf * Math.log(t.getImpact_socre() + 1);
+							tweetList.add(t);
+						}
+						KeyWordScore s = new KeyWordScore(entry.getKey(), topicScore, tweetList);
+						if (pq.size() < Integer.valueOf(maxTopicWords)) {
 							pq.add(s);
-						} else if (peek.getTopicScore() == s.getTopicScore()
-								&& peek.getKey().compareTo(s.getKey()) > 0) {
-							pq.poll();
-							pq.add(s);
+						} else {
+							KeyWordScore peek = pq.peek();
+							if (peek.getTopicScore() < s.getTopicScore()) {
+								pq.poll();
+								pq.add(s);
+							} else if (peek.getTopicScore() == s.getTopicScore()
+									&& peek.getKey().compareTo(s.getKey()) > 0) {
+								pq.poll();
+								pq.add(s);
+							}
 						}
 					}
 				}
+				
 				// append topic words result
 				StringBuilder sb = new StringBuilder();
 				// append tweets result
@@ -274,16 +436,9 @@ public class MySqlServlet extends HttpServlet {
 				result = sb.substring(0, sb.length() - 1) + "\n" + tsb.substring(0, tsb.length() - 1);
 				writer.write(result);
 				writer.close();
-			} catch (SQLException e) {
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} finally {
-				if (stmt != null) {
-					try {
-						stmt.close();
-					} catch (SQLException e) {
-						e.printStackTrace();
-					}
-				}
 			}
 		}
 
