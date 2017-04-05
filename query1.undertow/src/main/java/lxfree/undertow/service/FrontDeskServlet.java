@@ -11,16 +11,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 public class FrontDeskServlet extends HttpServlet {
-	String TEAMID = "LXFreee";
-	String TEAM_AWS_ACCOUNT_ID = "7104-6822-7247";
-
+	private String TEAMID = "LXFreee";
+	private String TEAM_AWS_ACCOUNT_ID = "7104-6822-7247";
+	private String X = "12389084059184098308123098579283204880956800909293831223134798257496372124879237412193918239183928140";
+	
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
 			throws ServletException, IOException {
 		PrintWriter writer = response.getWriter();
 		String key = request.getParameter("key");
 		String message = request.getParameter("message");
-		String X = "12389084059184098308123098579283204880956800909293831223134798257496372124879237412193918239183928140";
 		int Xlength = X.length();
 		int Ylength = key.length();
 		int layers = 0;

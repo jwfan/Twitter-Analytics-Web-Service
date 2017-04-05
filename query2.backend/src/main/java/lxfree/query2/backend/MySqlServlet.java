@@ -9,7 +9,6 @@ import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.PriorityQueue;
 
 import javax.servlet.ServletException;
@@ -71,10 +70,6 @@ public class MySqlServlet extends HttpServlet {
 			/* get n and keywords list from request args */
 			int n = Integer.valueOf(N);
 			String[] keywords = keywordslist.split(",");
-			HashMap<String, Integer> keywordsSet=new HashMap<String, Integer>();
-			for(int i=0; i<keywords.length;i++){
-				keywordsSet.put(keywords[i], 1);
-			}
 			PriorityQueue<KVPair> pq = new PriorityQueue<KVPair>(11, new Comparator<KVPair>() {
 				@Override
 				public int compare(KVPair o1, KVPair o2) {
@@ -140,37 +135,19 @@ public class MySqlServlet extends HttpServlet {
 					while (rs.next()) {
 						int score = 0;
 						Long userid = Long.valueOf(rs.getString("user_id"));
-						/* get effective word count */
-						String userKeywordsList=rs.getString("keywords");
-						String[] userKeywords=userKeywordsList.split(",");
-						HashMap<String, Integer> userKeywordsMap=new HashMap<String, Integer>();
-						for(int i=0;i<userKeywords.length;i++){
-							if(userKeywordsMap.containsKey(userKeywords[i])){
-								int wordCount=userKeywordsMap.get(userKeywords[i])+1;
-								userKeywordsMap.put(userKeywords[i], wordCount);
-							}else{
-								userKeywordsMap.put(userKeywords[i], 1);
-							}
-						}
-						JSONObject jo=new JSONObject();
-						for(Entry<String, Integer> entry:userKeywordsMap.entrySet()){
-							if(keywordsSet.containsKey(entry.getKey())){
-								score+=entry.getValue();
-							}
-							jo.put(entry.getKey(), entry.getValue());
-						}
-						//JSONObject jo = new JSONObject(rs.getString("keywords"));
+						//get calculated keywords count from database
+						JSONObject jo = new JSONObject(rs.getString("keywords"));
 						JSONObject cacheObj = new JSONObject();
 						cacheObj.put("user_id", userid);
 						cacheObj.put("keywrods", jo);
 						cacheJa.put(cacheObj);
-						/*for (int i = 0; i < keywords.length; i++) {
+						for (int i = 0; i < keywords.length; i++) {
 							try {
 								score += jo.getInt(keywords[i]);
 							} catch (JSONException e) {
 								continue;
 							}
-						}*/
+						}
 						KVPair entry = new KVPair(userid, score);
 						if (pq.size() < n) {
 							pq.add(entry);
