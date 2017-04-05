@@ -1,17 +1,11 @@
 package lxfree.query3.mapreduce;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -49,7 +43,7 @@ public final class TweeterDataReducer {
 				wordFreq = parts[4];
 				tidValue = new JSONObject();
 				JSONObject tidOb = new JSONObject();
-				tidOb.put("text", text);
+				tidOb.put("text", new JSONObject(text).get("censored_text"));
 				tidOb.put("impact_score", impact_score);
 				tidOb.put("wordFreq", wordFreq);
 				tidValue.put(tid, tidOb);
@@ -57,35 +51,7 @@ public final class TweeterDataReducer {
 					jsonArray.put(tidValue);
 				} else {
 					if (currenttimeuid != null && !currenttimeuid.equals(timeuid)) {
-						StringBuilder sb = new StringBuilder();
-						sb.append("[");
-						for(int i = 0; i < jsonArray.length(); i++) {
-							JSONObject jo = jsonArray.getJSONObject(i);
-							for(String key: jo.keySet()) {
-								JSONObject tidObj = jo.getJSONObject(key);
-								sb.append("{\"").append(key).append("\":{");
-								sb.append("\"wordFreq\":").append(tidObj.getString("wordFreq")).append(",");
-								sb.append("\"impact_score\":").append(tidObj.getInt("impact_score")).append(",");
-								text = tidObj.getString("text");
-								text = text.replaceAll("\\\\", "\\\\\\\\");
-								text = text.replaceAll("/", "\\\\/");
-								text = text.replaceAll("\"", "\\\\\"");
-								text = text.replaceAll("\'","\\\'");
-								sb.append("\"text\":\"").append(text).append("\"");
-								sb.append("}}");
-							}
-							if(i != jsonArray.length()-1) {
-								sb.append(",");
-							}
-						}
-						sb.append("]");
-						try{
-							JSONArray ja = new JSONArray(sb.toString());						
-						} catch(Exception e) {
-							System.out.println(sb);
-							e.printStackTrace();
-						}
-						out.write(currenttimeuid + "\t" + sb + "\n");
+						out.write(currenttimeuid + "\t" + jsonArray.toString() + "\n");
 						jsonArray=new JSONArray();
 						jsonArray.put(tidValue);
 					} else {
@@ -96,26 +62,7 @@ public final class TweeterDataReducer {
 			}
 			if (currenttimeuid != null && currenttimeuid.equals(timeuid)) {
 				jsonArray.put(tidValue);
-				StringBuilder sb = new StringBuilder();
-				sb.append("[");
-				for(int i = 0; i < jsonArray.length(); i++) {
-					JSONObject jo = jsonArray.getJSONObject(i);
-					for(String key: jo.keySet()) {
-						JSONObject tidObj = jo.getJSONObject(key);
-						sb.append("{\"").append(key).append("\":{");
-						sb.append("\"wordFreq\":").append(tidObj.getString("wordFreq")).append(",");
-						sb.append("\"impact_score\":").append(tidObj.getInt("impact_score")).append(",");
-						text = tidObj.getString("text");
-						text = text.replaceAll("\"", "\\\"");
-						sb.append("\"text\":\"").append(text).append("\"");
-						sb.append("}}");
-					}
-					if(i != jsonArray.length()-1) {
-						sb.append(",");
-					}
-				}
-				sb.append("]");
-				out.write(currenttimeuid + "\t" + sb + "\n");
+				out.write(currenttimeuid + "\t" + jsonArray.toString() + "\n");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

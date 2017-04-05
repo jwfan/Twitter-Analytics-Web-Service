@@ -1,16 +1,12 @@
 package lxfree.query3.mapreduce;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -247,15 +243,13 @@ public class TweeterDataMapper {
 				if(wordFreq.length() == 0) {
 					wordFreq = ",";
 				}
-				text = text.replaceAll("\n", "\\\\n");
-				text = text.replaceAll("\r", "\\\\r");
 				String zero13 = "0000000000000";
 				String zero19 = "0000000000000000000";
 				String timestamp13 = zero13.substring(0, 13 - time.length()) + time;
 				String uid19 = zero19.substring(0, 19 - uid.length()) + uid;
 				String timeuid = timestamp13 + uid19;
-				
-				out.write(timeuid + "\t" + tid + "\t" + text + "\t" + impact_score + "\t{"
+
+				out.write(timeuid + "\t" + tid + "\t" + textJo.toString() + "\t" + impact_score + "\t{"
 						+ wordFreq.substring(0, wordFreq.length() - 1) + "}" + "\n");
 
 			}
