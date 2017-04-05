@@ -1,7 +1,6 @@
 package lxfree.query3.backend;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -18,8 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.Map.Entry;
 
 import javax.servlet.ServletException;
@@ -37,7 +34,6 @@ public class MySqlServlet extends HttpServlet {
 	private static String TEAM_AWS_ACCOUNT_ID = "7104-6822-7247";
 	private static String TABLENAME = "q3_table";
 	private final static String regex = "[0-9]+";
-	private Pattern unicodeReg = Pattern.compile("(\\u[0-9A-Fa-f]{4})");
 	private static Map<String, Integer> bannedWords = new HashMap<String, Integer>();
 	private static String shardBase1="00013999096180000000000024283520";
 	private static String shardBase2="00014825227340000000000227019820";
@@ -177,6 +173,9 @@ public class MySqlServlet extends HttpServlet {
 				System.out.println("sub-db 3 query done.");
 			}
 		});
+		t1.start();
+		t2.start();
+		t3.start();
 	}
 	
 	/**
@@ -193,16 +192,12 @@ public class MySqlServlet extends HttpServlet {
 			stmt.setString(1, startTUid);
 			stmt.setString(2, endTUid);
 			// remove replicated tweets
-			
 			ResultSet rs = stmt.executeQuery();
 			
 			while (rs.next()) {
 				String tweet = null;
-				String text = rs.getString("censored_text");
-				
-				int length=text.length();
-				tweet=text.substring(18, length-2);
-				System.out.println(tweet);
+				String text = rs.getString("text");
+				tweet = text.getString("censored_text");
 				int impactScore = rs.getInt("impact_score");
 				String tweetId = rs.getString("twitter_id");
 				JSONObject keyWords = new JSONObject(rs.getString("keywords"));
@@ -221,7 +216,6 @@ public class MySqlServlet extends HttpServlet {
 				}
 			}
 		} catch (ClassNotFoundException | SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -241,8 +235,7 @@ public class MySqlServlet extends HttpServlet {
 		final PrintWriter writer = response.getWriter();
 		// Load banned words which need to be censored
 		if (bannedWords.size() == 0) {
-			InputStream bannedfile = new FileInputStream("banned_words");
-//			InputStream bannedfile = MySqlServlet.class.getResourceAsStream("/banned_words");
+			InputStream bannedfile = MySqlServlet.class.getResourceAsStream("/banned_words");
 			BufferedReader bannedbr = null;
 			try {
 				bannedbr = new BufferedReader(new InputStreamReader(bannedfile, StandardCharsets.UTF_8));
@@ -290,7 +283,7 @@ public class MySqlServlet extends HttpServlet {
 				 * Query the 3 sub-databases
 				 */
 				qryDB(startTUid, endTUid);				
-				// Store the top n1 topic words
+				//Store the top n1 topic words
 				PriorityQueue<KeyWordScore> pq = new PriorityQueue<KeyWordScore>(11, new Comparator<KeyWordScore>() {
 					@Override
 					public int compare(KeyWordScore o1, KeyWordScore o2) {
@@ -408,13 +401,6 @@ public class MySqlServlet extends HttpServlet {
 				while (tweetspq.peek() != null) {
 					Tweet t = tweetspq.poll();
 					StringBuilder tweetSb = new StringBuilder();
-					String tweetText = t.getText();
-					Matcher m = unicodeReg.matcher(tweetText);
-					while (m.matches()) {
-						String g = m.group();
-					    int hexVal = Integer.parseInt(g, 16);
-					    tweetText = tweetText.replaceAll(g, ((char)hexVal)+"");
-					}
 					tweetSb.append(t.getImpact_socre()).append("\t").append(t.getId()).append("\t").append(t.getText())
 							.append("\n");
 					tsb.insert(0, tweetSb);
@@ -423,7 +409,6 @@ public class MySqlServlet extends HttpServlet {
 				writer.write(result);
 				writer.close();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
