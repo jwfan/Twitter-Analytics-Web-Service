@@ -49,3 +49,15 @@ load data local infile 'part-00000' into table q3_table columns terminated by '\
 
 # Step 4 create index
 create index hashtag_user_index on q3_table (ut_id);
+
+# HBase for Query 3
+create ’twitter’,’data'
+hbase count 't1'
+create 'twitter_db', 'data', {SPLITS => [‘00014100000000000000000000000000’,’00014300000000000000000000000000’,‘00014500000000000000000000000000’,’00014700000000000000000000000000’]}
+
+hadoop fs -mkdir /user/input
+hadoop fs -put output /user/input
+hadoop fs -ls /user/input
+hbase org.apache.hadoop.hbase.mapreduce.ImportTsv -Dimporttsv.columns=HBASE_ROW_KEY,data:userid -Dimporttsv.bulk.output=/user/output twitter /user/input/output
+hadoop fs -chown -R hbase:hbase /user/output
+hbase org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles /user/output twitter
