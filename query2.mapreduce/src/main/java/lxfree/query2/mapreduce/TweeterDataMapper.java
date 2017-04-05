@@ -37,8 +37,8 @@ public class TweeterDataMapper {
 		BufferedReader br = null;
 		PrintWriter out = null;
 //		String fileName = System.getenv("mapreduce_map_input_file");
-//		File file = new File("part-r-00000");
-//		File output = new File("output");
+		File file = new File("part-r-00000");
+		File output = new File("output");
 		
 		if(stopWords.size() == 0) {
 			InputStream stopfile = TweeterDataMapper.class.getResourceAsStream( "/stopwords.txt" );
@@ -64,10 +64,10 @@ public class TweeterDataMapper {
 		
 		
 		try{
-//			br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
-//			out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8), true);
-			br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
-			out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
+			br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+			out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8), true);
+//			br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
+//			out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
 			String line;
 			while((line = br.readLine()) != null) {
 				
@@ -183,7 +183,7 @@ public class TweeterDataMapper {
 				//print out valid data
 				for(int i = 0; i < hashtags.length(); i++) {
 					String hashText = hashtags.getJSONObject(i).getString("text");
-					out.write(hashText + "\t" + uid  + "\t" + keyWords.substring(0, keyWords.length() - 1) + "\n");
+					out.write(hashText + "\t" + uid  + "\t" + keyWords.substring(0, keyWords.length() - 1) + "\t" + tid + "\n");
 				}
 				
 			}
