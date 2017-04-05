@@ -7,7 +7,7 @@ use q2_db;
 # Step 2 create twitter table
 drop table if exists `q2_table`;
 create table `q2_table` (
-	`unique_id` varchar(10) not null,
+	`unique_id` int not null auto_increment,
 	`hashtag` varbinary(140) not null,
 	`user_id` varchar(19) not null,
 	`keywords` LONGTEXT not null,
@@ -15,14 +15,12 @@ create table `q2_table` (
 );
 
 # Step 3 add data to businesses table
-load data local infile 'part-00000' into table q2_table columns terminated by '\t' LINES TERMINATED BY '\n';
+load data local infile 'part-00000' into table q2_table columns terminated by '\t' LINES TERMINATED BY '\n' (hashtag, user_id, keywords);
 
 # Step 4 create index
 create index hashtag_user_index on q2_table (hashtag, user_id);
 
 # HBase for Query 2
-create ’twitter’,’data'
-
 create 'twitter_db', 'data', {SPLITS => [‘a’]}
 
 hadoop fs -mkdir /user/input
