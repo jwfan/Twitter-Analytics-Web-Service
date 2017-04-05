@@ -187,8 +187,8 @@ public class MySqlServlet extends HttpServlet {
 		PreparedStatement stmt = null;
 		try {
 			conn = ConnectionManager.getConnection(choose);
-			String sql = "SELECT text FROM " + TABLENAME
-					+ " WHERE tu_id>=? AND tu_id<=?";
+			String sql = "SELECT tu_id, censored_text, impact_score, keywords FROM " + TABLENAME
+					 	 + " WHERE tu_id BETWEEN ? AND ?";
 			stmt = conn.prepareStatement(sql);
 			stmt.setString(1, startTUid);
 			stmt.setString(2, endTUid);
@@ -198,9 +198,7 @@ public class MySqlServlet extends HttpServlet {
 			
 			while (rs.next()) {
 				String tweet = null;
-				String text = rs.getString("text");
-				System.out.println(text);
-				JSONArray jArr=new JSONArray(text);
+				String text = rs.getString("censored_text");
 				
 				int length=text.length();
 				tweet=text.substring(18, length-2);
@@ -229,18 +227,6 @@ public class MySqlServlet extends HttpServlet {
 		
 	}
 	
-	public int shardMap(String tuid){
-		if(tuid.compareTo(shardBase1)<0){
-			return 0+(roundRobin1++)%2;
-		}
-		if(tuid.compareTo(shardBase1)>0&&tuid.compareTo(shardBase2)<0){
-			return 2+(roundRobin2++)%2;
-		}
-		else if(tuid.compareTo(shardBase2)>0){
-			return 4+(roundRobin3++)%2;
-		}
-		return 0;
-	}
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
 			throws ServletException, IOException {
