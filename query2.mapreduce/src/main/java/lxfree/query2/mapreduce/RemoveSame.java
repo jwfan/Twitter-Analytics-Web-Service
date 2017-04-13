@@ -127,6 +127,7 @@ public class RemoveSame {
 		conf.setReducerClass(Reduce.class);
 		conf.setInputFormat(TextInputFormat.class);
 		conf.setOutputFormat(TextOutputFormat.class);
+		conf.setNumReduceTasks(1);
 		FileInputFormat.setInputPaths(conf, new Path(args[0]));
 		FileOutputFormat.setOutputPath(conf, new Path(args[1]));
 		JobClient.runJob(conf);
