@@ -2,21 +2,16 @@ package lxfree.query2.mapreduce;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Iterator;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.FileInputFormat;
-import org.apache.hadoop.mapred.FileOutputFormat;
-import org.apache.hadoop.mapred.JobClient;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.MapReduceBase;
-import org.apache.hadoop.mapred.Mapper;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.Reducer;
-import org.apache.hadoop.mapred.Reporter;
-import org.apache.hadoop.mapred.TextInputFormat;
-import org.apache.hadoop.mapred.TextOutputFormat;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,10 +20,12 @@ public class RemoveSame {
 
 	private final static String[] LANG = { "ar", "en", "fr", "in", "pt", "es", "tr" };
 
-	public static class Map extends MapReduceBase implements Mapper {
+	public static class Map  extends Mapper<Object, Text, Text, IntWritable> {
 
+		private final static IntWritable one = new IntWritable(1);
+		
 		@Override
-		public void map(Object key, Object value, OutputCollector output, Reporter reporter) throws IOException {
+		public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
 			String line = value.toString();
 			JSONObject jo = null;
 			String tid;
@@ -104,33 +101,32 @@ public class RemoveSame {
 					return;
 				}
 				
-				output.collect(new Text(line), new Text(""));
+				context.write(new Text(line), one);
 			
 		}
 	}
 
-	public static class Reduce extends MapReduceBase implements Reducer {
-		@Override
-		public void reduce(Object key, Iterator values, OutputCollector output, Reporter reporter) throws IOException {
-			output.collect(new Text(key.toString()), new Text(""));
-			
+
+	public static class Reduce extends Reducer<Text, IntWritable, Text, Text> {
+		
+		public void reduce(Text key, Iterable<IntWritable> values, Context context)
+				throws IOException, InterruptedException {
+			for (IntWritable val : values) {}
+			context.write(new Text(key.toString()), new Text(""));
 		}
 	}
-
+	
 	public static void main(String[] args) throws Exception {
-		JobConf conf = new JobConf(RemoveSame.class);
-		conf.setJobName("removesame");
-		conf.setOutputKeyClass(Text.class);
-		conf.setOutputValueClass(Text.class);
-		conf.setMapperClass(Map.class);
-		conf.setCombinerClass(Reduce.class);
-		conf.setReducerClass(Reduce.class);
-		conf.setInputFormat(TextInputFormat.class);
-		conf.setOutputFormat(TextOutputFormat.class);
-		conf.setNumReduceTasks(1);
-		FileInputFormat.setInputPaths(conf, new Path(args[0]));
-		FileOutputFormat.setOutputPath(conf, new Path(args[1]));
-		JobClient.runJob(conf);
+		Configuration conf = new Configuration();
+		Job job = Job.getInstance(conf, "remove same");
+		job.setJarByClass(RemoveSame.class);
+		job.setMapperClass(Map.class);
+		job.setReducerClass(Reduce.class);
+		job.setOutputKeyClass(Text.class);
+		job.setOutputValueClass(IntWritable.class);
+		FileInputFormat.addInputPath(job, new Path(args[0]));
+		FileOutputFormat.setOutputPath(job, new Path(args[1]));
+		System.exit(job.waitForCompletion(true) ? 0 : 1);
 	}
 
 }
