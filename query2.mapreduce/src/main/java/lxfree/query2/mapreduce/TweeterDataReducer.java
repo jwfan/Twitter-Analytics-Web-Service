@@ -18,7 +18,7 @@ import org.json.JSONObject;
 
 public final class TweeterDataReducer {
 
-	private static Map<String, Integer> tIds = new HashMap<String, Integer>();
+//	private static Map<String, Integer> tIds = new HashMap<String, Integer>();
 
 	public static void main(String[] args) {
 		BufferedReader br = null;
@@ -36,21 +36,13 @@ public final class TweeterDataReducer {
 			String currenthashid = null;
 			String[] keyText = null;
 			String userid = null;
-			String tid = null;
 			Map<String, Integer> keyWords = new HashMap<String, Integer>();
 			Map<String, Map<String, Integer>> userMap = new HashMap<String, Map<String, Integer>>();
-			BigInteger id = BigInteger.ONE;
 			while ((input = br.readLine()) != null) {
 				String[] parts = input.split("\t");
 				hashid = parts[0];
 				userid = parts[1];
 				text = parts[2];
-				tid = parts[3];
-				if (tIds.containsKey(tid)) {
-					continue;
-				} else {
-					tIds.put(tid, 1);
-				}
 				keyText = text.split(",");
 				if (currenthashid != null && currenthashid.equals(hashid)) {
 					if (!userMap.containsKey(userid)) {
@@ -69,6 +61,7 @@ public final class TweeterDataReducer {
 					if (currenthashid != null && !currenthashid.equals(hashid)) {
 						StringBuilder sb = new StringBuilder();
 						for (Entry<String, Map<String, Integer>> e2 : userMap.entrySet()) {
+							sb = new StringBuilder();
 							Map<String, Integer> m = e2.getValue();
 							JSONObject jo = new JSONObject();
 							for (Entry<String, Integer> e1 : m.entrySet()) {
@@ -76,10 +69,8 @@ public final class TweeterDataReducer {
 							}
 							sb.append(currenthashid).append("\t").append(e2.getKey())
 									.append("\t").append(jo);
-							JSONObject n = new JSONObject(jo.toString());
+							out.write(sb + "\n");
 						}
-						out.write(sb + "\n");
-						id = id.add(BigInteger.ONE);
 						userMap = new HashMap<String, Map<String, Integer>>();
 						keyWords = new HashMap<String, Integer>();
 						for (String a : keyText) {
@@ -106,6 +97,7 @@ public final class TweeterDataReducer {
 			if (currenthashid != null && currenthashid.equals(hashid)) {
 				StringBuilder sb = new StringBuilder();
 				for (Entry<String, Map<String, Integer>> e2 : userMap.entrySet()) {
+					sb = new StringBuilder();
 					Map<String, Integer> m = e2.getValue();
 					JSONObject jo = new JSONObject();
 					for (Entry<String, Integer> e1 : m.entrySet()) {
@@ -113,8 +105,8 @@ public final class TweeterDataReducer {
 					}
 					sb.append(currenthashid).append("\t").append(e2.getKey())
 							.append("\t").append(jo);
+					out.write(sb + "\n");
 				}
-				out.write(sb + "\n");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

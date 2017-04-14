@@ -2,7 +2,6 @@ package lxfree.query2.mapreduce;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,16 +28,16 @@ public class TweeterDataMapper {
 	
 	private final static String SHORTURL_REGEX = "(https?|ftp)://[^\\t\\r\\n /$.?#][^\\t\\r\\n ]*";
 	private final static String LETTER_REGEX = "\\p{L}+";
-	private final static String[] LANG = {"ar","en", "fr", "in", "pt", "es", "tr"};
-	private static Map<String, Integer> tIds = new HashMap<String, Integer>();
+//	private final static String[] LANG = {"ar","en", "fr", "in", "pt", "es", "tr"};
+//	private static Map<String, Integer> tIds = new HashMap<String, Integer>();
 	private static Map<String, Integer> stopWords = new HashMap<String, Integer>();
 	
 	public static void main(String[] args) {
 		BufferedReader br = null;
 		PrintWriter out = null;
 //		String fileName = System.getenv("mapreduce_map_input_file");
-		File file = new File("part-r-00000");
-		File output = new File("output");
+//		File file = new File("part-r-00000");
+//		File output = new File("output");
 		
 		if(stopWords.size() == 0) {
 			InputStream stopfile = TweeterDataMapper.class.getResourceAsStream( "/stopwords.txt" );
@@ -64,10 +63,10 @@ public class TweeterDataMapper {
 		
 		
 		try{
-			br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
-			out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8), true);
-//			br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
-//			out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
+//			br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+//			out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8), true);
+			br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
+			out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
 			String line;
 			while((line = br.readLine()) != null) {
 				
@@ -77,7 +76,7 @@ public class TweeterDataMapper {
 				JSONObject jo = null;
 				String tid;
 				String uid;
-				String date;
+//				String date;
 				String lang;
 				String text;
 				JSONArray hashtags;
@@ -86,39 +85,39 @@ public class TweeterDataMapper {
 					jo = new JSONObject(line);
 					
 					//Both id and id_str of the tweet object are missing or empty
-					try{
-						tid = jo.get("id").toString();
-					} catch (JSONException e1) {
-						try {
-							tid = jo.getString("id_str");
-							if(tid.equals("")){
-								continue;
-							}
-						} catch(JSONException e2) {
-							continue;
-						}
-					}
+//					try{
+//						tid = jo.get("id").toString();
+//					} catch (JSONException e1) {
+//						try {
+//							tid = jo.getString("id_str");
+//							if(tid.equals("")){
+//								continue;
+//							}
+//						} catch(JSONException e2) {
+//							continue;
+//						}
+//					}
 					
 					//Both id and id_str in user object are missing or empty
 					JSONObject user = jo.getJSONObject("user");
-					try{
+//					try{
 						uid = user.get("id").toString();
-					} catch (JSONException e1) {
-						try {
-							uid = user.getString("id_str");
-							if("".equals(uid)){
-								continue;
-							}
-						} catch(JSONException e2) {
-							continue;
-						}
-					}
+//					} catch (JSONException e1) {
+//						try {
+//							uid = user.getString("id_str");
+//							if("".equals(uid)){
+//								continue;
+//							}
+//						} catch(JSONException e2) {
+//							continue;
+//						}
+//					}
 					
 					//created_at field is missing or empty
-					date = jo.getString("created_at");
-					if("".equals(date)){
-						continue;
-					}
+//					date = jo.getString("created_at");
+//					if("".equals(date)){
+//						continue;
+//					}
 					
 					//text field is missing or empty
 					text = jo.getString("text");
@@ -127,10 +126,10 @@ public class TweeterDataMapper {
 					}
 					
 					//lang field is missing or empty
-					lang = jo.getString("lang");
-					if("".equals(lang)) {
-						continue;
-					}
+//					lang = jo.getString("lang");
+//					if("".equals(lang)) {
+//						continue;
+//					}
 					
 					//hashtag text (stated above) is missing or empty
 					JSONObject entities = jo.getJSONObject("entities");
@@ -148,9 +147,9 @@ public class TweeterDataMapper {
 				 * 2. Filter out invalid Language of Tweets
 				 */
 					
-				if(!Arrays.asList(LANG).contains(lang)) {
-					continue;
-				}
+//				if(!Arrays.asList(LANG).contains(lang)) {
+//					continue;
+//				}
 					
 				/*
 				 * 3. Remove Shortened URLs
@@ -160,11 +159,11 @@ public class TweeterDataMapper {
 				/*
 				 * 4. Remove duplicated tweet id
 				 */
-				if(tIds.containsKey(tid)) {
-					continue;
-				} else {
-					tIds.put(tid, 1);
-				}
+//				if(tIds.containsKey(tid)) {
+//					continue;
+//				} else {
+//					tIds.put(tid, 1);
+//				}
 				
 				//split key words
 				StringBuilder keyWords = new StringBuilder();
@@ -183,9 +182,8 @@ public class TweeterDataMapper {
 				//print out valid data
 				for(int i = 0; i < hashtags.length(); i++) {
 					String hashText = hashtags.getJSONObject(i).getString("text");
-					out.write(hashText + "\t" + uid  + "\t" + keyWords.substring(0, keyWords.length() - 1) + "\t" + tid + "\n");
+					out.write(hashText + "\t" + uid  + "\t" + keyWords.substring(0, keyWords.length() - 1));
 				}
-				
 			}
 		} catch(IOException e) {
 			e.printStackTrace();
