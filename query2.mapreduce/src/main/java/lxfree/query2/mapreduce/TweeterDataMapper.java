@@ -74,10 +74,10 @@ public class TweeterDataMapper {
 				 * 1. Check Malformed Data 
 				 */
 				JSONObject jo = null;
-				String tid;
+//				String tid;
 				String uid;
 //				String date;
-				String lang;
+//				String lang;
 				String text;
 				JSONArray hashtags;
 				try{
@@ -100,18 +100,18 @@ public class TweeterDataMapper {
 					
 					//Both id and id_str in user object are missing or empty
 					JSONObject user = jo.getJSONObject("user");
-//					try{
+					try{
 						uid = user.get("id").toString();
-//					} catch (JSONException e1) {
-//						try {
-//							uid = user.getString("id_str");
-//							if("".equals(uid)){
-//								continue;
-//							}
-//						} catch(JSONException e2) {
-//							continue;
-//						}
-//					}
+					} catch (JSONException e1) {
+						try {
+							uid = user.getString("id_str");
+							if("".equals(uid)){
+								continue;
+							}
+						} catch(JSONException e2) {
+							continue;
+						}
+					}
 					
 					//created_at field is missing or empty
 //					date = jo.getString("created_at");
