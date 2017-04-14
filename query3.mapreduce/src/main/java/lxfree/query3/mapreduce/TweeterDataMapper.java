@@ -1,6 +1,9 @@
 package lxfree.query3.mapreduce;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -112,8 +115,7 @@ public class TweeterDataMapper {
 					// Convert to json object
 					jo = new JSONObject(line);
 
-					// Both id and id_str of the tweet object are missing or
-					// empty
+					// Both id and id_str of the tweet object are missing or empty
 					try {
 						tid = jo.get("id").toString();
 					} catch (JSONException e1) {
@@ -126,7 +128,7 @@ public class TweeterDataMapper {
 							continue;
 						}
 					}
-
+					
 					// Both id and id_str in user object are missing or empty
 					JSONObject user = jo.getJSONObject("user");
 					try {
@@ -236,21 +238,18 @@ public class TweeterDataMapper {
 				JSONObject textJo = new JSONObject();
 				textJo.put("censored_text", text);
 				// print out valid data
-				String wordFreq = "";
+				JSONObject wordFreq = new JSONObject();
 				for (String x : countMap.keySet()) {
-					wordFreq += "\"" + x + "\":" + countMap.get(x) + ",";
+					wordFreq.put(x, countMap.get(x));
 				}
-				if(wordFreq.length() == 0) {
-					wordFreq = ",";
-				}
-				String zero13 = "0000000000000";
+				String zero13 = "0000000000";
 				String zero19 = "0000000000000000000";
 				String timestamp13 = zero13.substring(0, 13 - time.length()) + time;
 				String uid19 = zero19.substring(0, 19 - uid.length()) + uid;
 				String timeuid = timestamp13 + uid19;
 
-				out.write(timeuid + "\t" + tid + "\t" + textJo.toString() + "\t" + impact_score + "\t{"
-						+ wordFreq.substring(0, wordFreq.length() - 1) + "}" + "\n");
+				out.write(timeuid + "\t" + tid + "\t" + textJo.toString() + "\t" + impact_score + "\t"
+						+ wordFreq.toString() + "\n");
 
 			}
 		} catch (IOException e) {
