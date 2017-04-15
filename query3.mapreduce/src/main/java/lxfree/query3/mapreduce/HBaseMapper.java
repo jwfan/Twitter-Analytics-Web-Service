@@ -29,8 +29,7 @@ public class HBaseMapper {
 	private final static Pattern NO_LETTER_REGEX = Pattern.compile("['\\-0-9]+");
 	private final static Pattern LETTER_REGEX = Pattern.compile("[A-Za-z0-9'\\-]+");
 	private final static Pattern CENSOR_LETTER_REGEX=Pattern.compile("[A-Za-z0-9]+");
-	private final static String LANG = "en";
-	private static Map<String, Integer> tIds = new HashMap<String, Integer>();
+//	private final static String LANG = "en";
 	private static Map<String, Integer> countMap = new HashMap<String, Integer>();
 	private static Map<String, Integer> stopWords = new HashMap<String, Integer>();
 	private static Map<String, Integer> bannedWords = new HashMap<String, Integer>();
@@ -103,7 +102,7 @@ public class HBaseMapper {
 				String tid;
 				String uid;
 				String date;
-				String lang;
+//				String lang;
 				String text;
 				String time;
 				int favorite_count;
@@ -165,10 +164,10 @@ public class HBaseMapper {
 					}
 
 					// lang field is missing or not equal to en
-					lang = jo.getString("lang");
-					if (!LANG.equals(lang)) {
-						continue;
-					}
+//					lang = jo.getString("lang");
+//					if (!LANG.equals(lang)) {
+//						continue;
+//					}
 
 					// get favorite, retweet and followers count
 					favorite_count = jo.getInt("favorite_count");
@@ -187,11 +186,11 @@ public class HBaseMapper {
 				/*
 				 * 3. Remove duplicated tweet id
 				 */
-				if (tIds.containsKey(tid)) {
-					continue;
-				} else {
-					tIds.put(tid, 1);
-				}
+//				if (tIds.containsKey(tid)) {
+//					continue;
+//				} else {
+//					tIds.put(tid, 1);
+//				}
 
 				// split key words and calculate the frequency
 				int EWC = 0;

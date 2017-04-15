@@ -29,7 +29,7 @@ public class MySqlMapper {
 	private final static Pattern NO_LETTER_REGEX = Pattern.compile("['\\-0-9]+");
 	private final static Pattern LETTER_REGEX = Pattern.compile("[A-Za-z0-9'\\-]+");
 	private final static Pattern CENSOR_LETTER_REGEX=Pattern.compile("[A-Za-z0-9]+");
-	private final static String LANG = "en";
+//	private final static String LANG = "en";
 	private static Map<String, Integer> tIds = new HashMap<String, Integer>();
 	private static Map<String, Integer> countMap = new HashMap<String, Integer>();
 	private static Map<String, Integer> stopWords = new HashMap<String, Integer>();
@@ -165,10 +165,10 @@ public class MySqlMapper {
 					}
 
 					// lang field is missing or not equal to en
-					lang = jo.getString("lang");
-					if (!LANG.equals(lang)) {
-						continue;
-					}
+//					lang = jo.getString("lang");
+//					if (!LANG.equals(lang)) {
+//						continue;
+//					}
 
 					// get favorite, retweet and followers count
 					favorite_count = jo.getInt("favorite_count");
