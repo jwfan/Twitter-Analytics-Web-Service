@@ -68,7 +68,7 @@ public class TweeterDataMapper {
 				String[] str = line.split("\t");
 				String tid = str[0];
 				String uid = str[1];
-				String username = str[2];
+				String usernameJo = str[2];
 				String date = str[3];
 				String textJSON = str[4];
 				int favorite_count = Integer.valueOf(str[5]);
@@ -155,6 +155,7 @@ public class TweeterDataMapper {
 				textJo.put("censored_text", text);
 				
 				// censor username
+				String username = new JSONObject(usernameJo).getString("username");
 				censorWordMatcher=CENSOR_LETTER_REGEX.matcher(username);
 				group = "";
 				while(censorWordMatcher.find()){
@@ -166,11 +167,13 @@ public class TweeterDataMapper {
 						String censor=new String();
 						for(int i=start;i<end;i++)
 							censor+="*";
-						text=text.substring(0, start) + censor + text.substring(end);
+						username=username.substring(0, start) + censor + username.substring(end);
 					}
 				}
-				out.write(tid + "\t" + date + "\t" + uid + "\t" + username 
-						+ "\t" + textJo.toString() + "\t" + favorite_count + "\t" + retweet_count);
+				JSONObject usernamejob = new JSONObject();
+				usernamejob.put("username", username);
+				out.write(tid + "\t" + date + "\t" + uid + "\t" + usernamejob 
+						+ "\t" + textJo.toString() + "\t" + favorite_count + "\t" + retweet_count + "\n");
 				
 			}
 		} catch(IOException e) {
