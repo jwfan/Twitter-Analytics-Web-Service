@@ -1,14 +1,10 @@
 package lxfree.query2.mapreduce;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,8 +13,6 @@ import java.util.Map.Entry;
 import org.json.JSONObject;
 
 public final class TweeterDataReducer {
-
-//	private static Map<String, Integer> tIds = new HashMap<String, Integer>();
 
 	public static void main(String[] args) {
 		BufferedReader br = null;
