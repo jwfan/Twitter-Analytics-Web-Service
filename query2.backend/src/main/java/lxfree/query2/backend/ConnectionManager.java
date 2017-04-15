@@ -22,14 +22,14 @@ public class ConnectionManager {
     private static final String DB_NAME = "q2_db";
     /* The DNS address of 3 replica mysql databases
      * remember to contain '/' at the end of the address! */
-    private static final String DNS1="ec2-54-159-193-193.compute-1.amazonaws.com/";
-    private static final String DNS2="ec2-54-89-160-159.compute-1.amazonaws.com/";
-    private static final String DNS3="ec2-54-89-160-159.compute-1.amazonaws.com/";
+    private static final String DNS1="ec2-34-204-2-194.compute-1.amazonaws.com/";
+    private static final String DNS2="ec2-54-89-228-84.compute-1.amazonaws.com/";
+    private static final String DNS3="ec2-184-72-117-91.compute-1.amazonaws.com/";
     private static final String URL1 = "jdbc:mysql://" + DNS1 + DB_NAME + "?useSSL=false";
     private static final String URL2 = "jdbc:mysql://" + DNS2 + DB_NAME + "?useSSL=false";
     private static final String URL3 = "jdbc:mysql://" + DNS3 + DB_NAME + "?useSSL=false";
-    private static String user="";
-    private static String pwd="";
+    private static String user="root";
+    private static String pwd="CClxfreee";
     /* Connection to 3 replica mysql databases */
     private static Connection conn1;
     private static Connection conn2;
@@ -48,8 +48,8 @@ public class ConnectionManager {
      */
     private static void initializeConnection() throws ClassNotFoundException, SQLException {
         Class.forName(JDBC_DRIVER);
-        user=System.getProperty("user");
-        pwd=System.getProperty("passowrd");
+//        user=System.getProperty("user");
+//        pwd=System.getProperty("passowrd");
         conn1 = DriverManager.getConnection(URL1, user, pwd);
         conn2 = DriverManager.getConnection(URL2, user, pwd);
         conn3 = DriverManager.getConnection(URL3, user, pwd);

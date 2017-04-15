@@ -121,9 +121,9 @@ public class MySqlServlet extends HttpServlet {
 		        	String sql = "SELECT hashtag, user_id, keywords FROM " + TABLENAME + " where hashtag=?";
 		        	/* Decide to which database to query */
 		        	switch(choose){
-		        	case 1:stmt = conn1.prepareStatement(sql);break;
-		        	case 2:stmt = conn2.prepareStatement(sql);break;
-		        	case 3:stmt = conn3.prepareStatement(sql);break;
+		        	case 0:stmt = conn1.prepareStatement(sql);break;
+		        	case 1:stmt = conn2.prepareStatement(sql);break;
+		        	case 2:stmt = conn3.prepareStatement(sql);break;
 		        	default:
 		        		stmt=conn1.prepareStatement(sql);
 		        	}
