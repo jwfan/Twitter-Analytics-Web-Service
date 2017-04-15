@@ -20,22 +20,24 @@ import org.json.JSONObject;
 
 public class TweeterDataMapper {
 	
-	private final static String LANG = "en";
 	private final static Pattern CENSOR_LETTER_REGEX=Pattern.compile("[A-Za-z0-9]+");
 	private static Map<String, Integer> bannedWords = new HashMap<String, Integer>();
+//	private final static String LANG = "en";
+	
 	
 	public static void main(String[] args) {
 		
-		 File file = new File("part-r-00000");
-		 File output = new File("output");
+//		File file = new File("part-r-00000");
+//		File output = new File("output");
 		BufferedReader br = null;
 		PrintWriter out = null;
+//		String lang = null;
 		
 		try{
-			br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
-			out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8), true);
-//			br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
-//			out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
+//			br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+//			out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8), true);
+			br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
+			out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
 			 // Load banned words which need to be censored
 			if (bannedWords.size() == 0) {
 				InputStream bannedfile = TweeterDataMapper.class.getResourceAsStream("/banned_words");
@@ -61,82 +63,80 @@ public class TweeterDataMapper {
 			
 			String line;
 			while ((line = br.readLine()) != null) {
-				/*
-				 * 1. Check Malformed Data
-				 */
-				JSONObject jo = null;
-				String tid;
-				String uid;
-				String username;
-				String date;
-				String lang;
-				String text;
-				int favorite_count;
-				int retweet_count;
+
+//				JSONObject jo = null;
+				String[] str = line.split("\t");
+				String tid = str[0];
+				String uid = str[1];
+				String username = str[2];
+				String date = str[3];
+				String textJSON = str[4];
+				int favorite_count = Integer.valueOf(str[5]);
+				int retweet_count = Integer.valueOf(str[6]);
 				
-				try {
-					// Convert to json object
-					jo = new JSONObject(line);
-					// Both id and id_str of the tweet object are missing or empty
-					try {
-						tid = jo.get("id").toString();
-					} catch (JSONException e1) {
-						try {
-							tid = jo.getString("id_str");
-							if (tid.equals("")) {
-								continue;
-							}
-						} catch (JSONException e2) {
-							continue;
-						}
-					}
+//				try {
+//					// Convert to json object
+//					jo = new JSONObject(line);
+//					// Both id and id_str of the tweet object are missing or empty
+//					try {
+//						tid = jo.get("id").toString();
+//					} catch (JSONException e1) {
+//						try {
+//							tid = jo.getString("id_str");
+//							if (tid.equals("")) {
+//								continue;
+//							}
+//						} catch (JSONException e2) {
+//							continue;
+//						}
+//					}
+//					
+//					//Username is missing or empty
+//					JSONObject user = jo.getJSONObject("user");
+//					try {
+//						uid = user.get("id").toString();
+//					} catch (JSONException e1) {
+//						try {
+//							uid = user.getString("id_str");
+//							if ("".equals(uid)) {
+//								continue;
+//							}
+//						} catch (JSONException e2) {
+//							continue;
+//						}
+//					}
+//					
+//					try {
+//						username = user.get("screen_name").toString();
+//					} catch (JSONException e1) {
+//						continue;
+//					}
+//					// created_at field is missing or empty
+//					date = jo.getString("created_at");
+//					if ("".equals(date)) {
+//						continue;
+//					}
+//					// text field is missing or empty
+//					text = jo.getString("text");
+//					if ("".equals(text)) {
+//						continue;
+//					}
+//					
+//					// lang field is missing or not equal to en
+//					lang = jo.getString("lang");
+//					if (!LANG.equals(lang)) {
+//						continue;
+//					}
 					
+//					favorite_count = jo.getInt("favorite_count");
+//					retweet_count = jo.getInt("retweet_count");
 					
-					//Username is missing or empty
-					JSONObject user = jo.getJSONObject("user");
-					try {
-						uid = user.get("id").toString();
-					} catch (JSONException e1) {
-						try {
-							uid = user.getString("id_str");
-							if ("".equals(uid)) {
-								continue;
-							}
-						} catch (JSONException e2) {
-							continue;
-						}
-					}
-					
-					try {
-						username = user.get("screen_name").toString();
-					} catch (JSONException e1) {
-						continue;
-					}
-					// created_at field is missing or empty
-					date = jo.getString("created_at");
-					if ("".equals(date)) {
-						continue;
-					}
-					// text field is missing or empty
-					text = jo.getString("text");
-					if ("".equals(text)) {
-						continue;
-					}
-					
-					// lang field is missing or not equal to en
-					lang = jo.getString("lang");
-					if (!LANG.equals(lang)) {
-						continue;
-					}
-					
-					favorite_count = jo.getInt("favorite_count");
-					retweet_count = jo.getInt("retweet_count");
-					
-				} catch(JSONException e) {
-					continue;
-				}
+//				} catch(JSONException e) {
+//					continue;
+//				}
 				
 				// censor text
+				String text = new JSONObject(textJSON).getString("text");
 				Matcher censorWordMatcher=CENSOR_LETTER_REGEX.matcher(text);
 				String group="";
 				while(censorWordMatcher.find()){
@@ -170,10 +170,22 @@ public class TweeterDataMapper {
 					}
 				}
 				out.write(tid + "\t" + date + "\t" + uid + "\t" + username 
-						+ "\t" + text + "\t" + favorite_count + "\t" + retweet_count);
+						+ "\t" + textJo.toString() + "\t" + favorite_count + "\t" + retweet_count);
 				
 			}
 		} catch(IOException e) {
+			
+		}finally{
+			if(br!=null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			if(out!=null) {
+				out.close();
+			}
 			
 		}
 		

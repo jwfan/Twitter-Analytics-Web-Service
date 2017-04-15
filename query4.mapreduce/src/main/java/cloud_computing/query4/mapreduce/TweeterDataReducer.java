@@ -15,14 +15,14 @@ public class TweeterDataReducer {
 	public static void main(String[] args) {
 		BufferedReader br = null;
 		PrintWriter out = null;
-		File file = new File("output");
-		File output = new File("output2");
+//		File file = new File("output");
+//		File output = new File("output2");
 		try {
 			String input = null;
-			br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
-			out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8), true);
-//			br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
-//			out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
+//			br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+//			out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8), true);
+			br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
+			out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
 			while ((input = br.readLine()) != null) {
 				out.write(input + "\n");
 			}
