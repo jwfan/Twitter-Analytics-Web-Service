@@ -196,7 +196,7 @@ public class MySqlServlet extends HttpServlet {
 			
 			while (rs.next()) {
 				String tweet = null;
-				String text = rs.getString("text");
+				JSONObject text = new JSONObject(rs.getString("text"));
 				tweet = text.getString("censored_text");
 				int impactScore = rs.getInt("impact_score");
 				String tweetId = rs.getString("twitter_id");
