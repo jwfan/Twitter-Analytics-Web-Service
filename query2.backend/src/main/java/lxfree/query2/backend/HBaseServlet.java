@@ -56,7 +56,7 @@ public class HBaseServlet extends HttpServlet {
 	}
 
 	@Override
-	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
 		final String hashtag = request.getParameter("hashtag");
 		final String N = request.getParameter("N");
@@ -102,11 +102,11 @@ public class HBaseServlet extends HttpServlet {
 				for (int i = 0; i < cacheRes.length(); i++) {
 					JSONObject jo = cacheRes.getJSONObject(i);
 					Long userid = jo.getLong("user_id");
-					JSONObject cacheKW = jo.getJSONObject("keywrods");
+					JSONObject cacheKW = jo.getJSONObject("keywords");
 					int score = 0;
-					for (int j = 0; i < keywords.length; j++) {
+					for (int j = 0; j < keywords.length; j++) {
 						try {
-							score += cacheKW.getInt(keywords[j]);
+							score += cacheKW.getInt(keywords[j].toLowerCase());
 						} catch (JSONException e) {
 							continue;
 						}
@@ -124,6 +124,7 @@ public class HBaseServlet extends HttpServlet {
 							pq.add(entry);
 						}
 					}
+
 				}
 			} else {
 				Table linksTable = null;
@@ -132,57 +133,68 @@ public class HBaseServlet extends HttpServlet {
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
-
 				Get get = new Get(Bytes.toBytes(hashtag));
 				// add column family
 				get.addFamily(bColFamily);
-				Result r = linksTable.get(get);
-				NavigableMap<byte[], byte[]> familyMap = r.getFamilyMap(bColFamily);
-
-				for (Entry<byte[], byte[]> familyEntry : familyMap.entrySet()) {
-					// iterator through the whole column family
-					Long userId = Long.parseLong(familyEntry.getKey().toString());
-					String wordFreqCount = familyEntry.getValue().toString();
-					JSONObject wfob = new JSONObject(wordFreqCount);
-
+				Result r;
+				try {
+					r = linksTable.get(get);
+					NavigableMap<byte[], byte[]> familyMap = r.getFamilyMap(bColFamily);
 					// put user-keyword pair into cache
 					JSONArray cacheJa = new JSONArray();
-					JSONObject cacheObj = new JSONObject();
-					cacheObj.put("user_id", userId);
-					cacheObj.put("keywrods", wfob);
-					cacheJa.put(cacheObj);
+					for (Entry<byte[], byte[]> familyEntry : familyMap.entrySet()) {
+						// iterator through the whole column family
+						Long userId = Long.parseLong(Bytes.toString(familyEntry.getKey()));							
+						String wordFreqCount = Bytes.toString(familyEntry.getValue());
+						JSONObject	wfob = new JSONObject(wordFreqCount);
+						
+						JSONObject cacheObj = new JSONObject();
+						cacheObj.put("user_id", userId);
+						cacheObj.put("keywords", wfob);
+						cacheJa.put(cacheObj);
+						
+						// calculate score
+						int score = 0;
+						for (int j = 0; j < keywords.length; j++) {
+							try {
+								score += wfob.getInt(keywords[j].toLowerCase());
+							} catch (JSONException e) {
+								continue;
+							}
+						}
+						KVPair entry = new KVPair(userId, score);
+						// use priority queue to calculate the top n
+						if (pq.size() < n) {
+							pq.add(entry);
+						} else {
+							KVPair peek = pq.peek();
+							if (peek.getValue() < entry.getValue()) {
+								pq.poll();
+								pq.add(entry);
+							} else if (peek.getValue() == entry.getValue() && peek.getKey() > entry.getKey()) {
+								pq.poll();
+								pq.add(entry);
+							}
+						}
+						
+					}
 					cache.put(hashtag, cacheJa);
-
-					// calculate score
-					int score = 0;
-					for (int j = 0; j < keywords.length; j++) {
-						try {
-							score += wfob.getInt(keywords[j]);
-						} catch (JSONException e) {
-							continue;
-						}
-					}
-					KVPair entry = new KVPair(userId, score);
-					// use priority queue to calculate the top n
-					if (pq.size() < n) {
-						pq.add(entry);
-					} else {
-						KVPair peek = pq.peek();
-						if (peek.getValue() < entry.getValue()) {
-							pq.poll();
-							pq.add(entry);
-						} else if (peek.getValue() == entry.getValue() && peek.getKey() > entry.getKey()) {
-							pq.poll();
-							pq.add(entry);
-						}
-					}
-
+				} catch (IOException e1) {
+					e1.printStackTrace();
 				}
 				if (linksTable != null) {
-					linksTable.close();
+					try {
+						linksTable.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 				}
 				if (conn != null) {
-					conn.close();
+					try {
+						conn.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 				}
 			}
 			if (pq.size() > 0) {
