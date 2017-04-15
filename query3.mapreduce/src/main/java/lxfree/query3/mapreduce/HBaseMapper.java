@@ -23,7 +23,7 @@ import org.json.JSONObject;
  * This class is to serve as mapper in MapReduce. List all the data and count as 1
  * 
  */
-public class MySqlMapper {
+public class HBaseMapper {
 
 	private final static String SHORTURL_REGEX = "(https?|ftp)://[^\\t\\r\\n /$.?#][^\\t\\r\\n ]*";
 	private final static Pattern NO_LETTER_REGEX = Pattern.compile("['\\-0-9]+");
@@ -44,7 +44,7 @@ public class MySqlMapper {
 //		 File output = new File("output");
 		 // Load stop words
 		if (stopWords.size() == 0) {
-			InputStream stopfile = MySqlMapper.class.getResourceAsStream("/stopwords.txt");
+			InputStream stopfile = HBaseMapper.class.getResourceAsStream("/stopwords.txt");
 			BufferedReader stopbr = null;
 			try {
 				stopbr = new BufferedReader(new InputStreamReader(stopfile, StandardCharsets.UTF_8));
@@ -66,7 +66,7 @@ public class MySqlMapper {
 		}
 		 // Load banned words which need to be censored
 		if (bannedWords.size() == 0) {
-			InputStream bannedfile = MySqlMapper.class.getResourceAsStream("/banned_words");
+			InputStream bannedfile = HBaseMapper.class.getResourceAsStream("/banned_words");
 			BufferedReader bannedbr = null;
 			try {
 				bannedbr = new BufferedReader(new InputStreamReader(bannedfile, StandardCharsets.UTF_8));
@@ -246,8 +246,7 @@ public class MySqlMapper {
 				String uid19 = zero19.substring(0, 19 - uid.length()) + uid;
 				String timeuid = timestamp13 + uid19;
 
-				out.write(timeuid + "\t" + tid + "\t" + time + "\t" + uid + "\t"
-						+ textJo.toString() + "\t" + impact_score + "\t"
+				out.write(timeuid + "\t" + tid + "\t" + textJo.toString() + "\t" + impact_score + "\t"
 						+ wordFreq.toString() + "\n");
 
 			}

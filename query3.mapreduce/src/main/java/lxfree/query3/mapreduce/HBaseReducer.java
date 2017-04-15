@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public final class MySqlReducer {
+public final class HBaseReducer {
 	
 	private static int i = 0;
 
@@ -33,20 +33,15 @@ public final class MySqlReducer {
 //		JSONArray jsonArray = new JSONArray();
 //		JSONObject tidValue = new JSONObject();
 		try {
-			File file = new File("output");
+//			File file = new File("output");
 //			File file = new File("test");
-			File output = new File("output2");
-			br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
-			out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8), true);
-//			br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
-//			out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
+//			File output = new File("output2");
+//			br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+//			out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8), true);
+			br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
+			out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
 			while ((input = br.readLine()) != null) {
-				out.write(i + "\t" + input + "\n"); // 
-				if(i == 5) {
-					i = 0;
-				} else {
-					i++;					
-				}
+				out.write(input + "\n");
 //				String[] parts = input.split("\t");
 //				timeuid = parts[0];
 //				tid = parts[1];

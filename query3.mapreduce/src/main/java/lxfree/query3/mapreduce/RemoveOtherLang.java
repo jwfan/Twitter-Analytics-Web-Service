@@ -31,7 +31,6 @@ public class RemoveOtherLang {
 				//Convert to json object
 				jo = new JSONObject(line);
 
-				
 				//lang field is missing or empty
 				lang = jo.getString("lang");
 				if(LANG.equals(lang)) {
@@ -42,7 +41,6 @@ public class RemoveOtherLang {
 					return;
 				}
 				context.write(new Text(line), one);
-			
 		}
 	}
 
