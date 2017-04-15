@@ -2,6 +2,8 @@ package lxfree.query3.mapreduce;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -95,73 +97,81 @@ public class HBaseMapper {
 			String line;
 			while ((line = br.readLine()) != null) {
 
-				/*
-				 * 1. Check Malformed Data
-				 */
-				JSONObject jo = null;
-				String tid;
-				String uid;
-				String date;
-//				String lang;
-				String text;
+				String[] str = line.split("\t");
+//				JSONObject jo = null;
+				String tid = str[0];
+				String uid = str[1];
+				String date = str[3];
+				String text = str[4];
 				String time;
-				int favorite_count;
-				int retweet_count;
-				int followers_count;
+				int favorite_count = Integer.valueOf(str[5]);
+				int retweet_count = Integer.valueOf(str[6]);
+				int followers_count = Integer.valueOf(str[7]);
+				
+				// change date to unix timestamp
+			    SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd kk:mm:ss z yyyy");
+			    Date d = null;
 				try {
-					// Convert to json object
-					jo = new JSONObject(line);
-
-					// Both id and id_str of the tweet object are missing or empty
-					try {
-						tid = jo.get("id").toString();
-					} catch (JSONException e1) {
-						try {
-							tid = jo.getString("id_str");
-							if (tid.equals("")) {
-								continue;
-							}
-						} catch (JSONException e2) {
-							continue;
-						}
-					}
-					
-					// Both id and id_str in user object are missing or empty
-					JSONObject user = jo.getJSONObject("user");
-					try {
-						uid = user.get("id").toString();
-					} catch (JSONException e1) {
-						try {
-							uid = user.getString("id_str");
-							if ("".equals(uid)) {
-								continue;
-							}
-						} catch (JSONException e2) {
-							continue;
-						}
-					}
-
-					// created_at field is missing or empty
-					date = jo.getString("created_at");
-					if ("".equals(date)) {
-						continue;
-					} else {
-						// change date to unix timestamp
-					    SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd kk:mm:ss z yyyy");
-					    Date d = null;
-						try {
-							d = dateFormat.parse(date);
-						} catch (ParseException e) {
-							time = date;
-						}
-						time = String.valueOf(d.getTime()/1000l);
-					}
-
-					// text field is missing or empty
-					text = jo.getString("text");
-					if ("".equals(text)) {
-						continue;
-					}
+					d = dateFormat.parse(date);
+				} catch (ParseException e) {
+					time = date;
+				}
+				time = String.valueOf(d.getTime()/1000l);
+				
+//				try {
+//					// Convert to json object
+//					jo = new JSONObject(line);
+//
+//					// Both id and id_str of the tweet object are missing or empty
+//					try {
+//						tid = jo.get("id").toString();
+//					} catch (JSONException e1) {
+//						try {
+//							tid = jo.getString("id_str");
+//							if (tid.equals("")) {
+//								continue;
+//							}
+//						} catch (JSONException e2) {
+//							continue;
+//						}
+//					}
+//					
+//					// Both id and id_str in user object are missing or empty
+//					JSONObject user = jo.getJSONObject("user");
+//					try {
+//						uid = user.get("id").toString();
+//					} catch (JSONException e1) {
+//						try {
+//							uid = user.getString("id_str");
+//							if ("".equals(uid)) {
+//								continue;
+//							}
+//						} catch (JSONException e2) {
+//							continue;
+//						}
+//					}
+//
+//					// created_at field is missing or empty
+//					date = jo.getString("created_at");
+//					if ("".equals(date)) {
+//						continue;
+//					} else {
+//						// change date to unix timestamp
+//					    SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd kk:mm:ss z yyyy");
+//					    Date d = null;
+//						try {
+//							d = dateFormat.parse(date);
+//						} catch (ParseException e) {
+//							time = date;
+//						}
+//						time = String.valueOf(d.getTime()/1000l);
+//					}
+//
+//					// text field is missing or empty
+//					text = jo.getString("text");
+//					if ("".equals(text)) {
+//						continue;
+//					}
 
 					// lang field is missing or not equal to en
 //					lang = jo.getString("lang");
@@ -170,13 +180,13 @@ public class HBaseMapper {
 //					}
 
 					// get favorite, retweet and followers count
-					favorite_count = jo.getInt("favorite_count");
-					retweet_count = jo.getInt("retweet_count");
-					followers_count = user.getInt("followers_count");
+//					favorite_count = jo.getInt("favorite_count");
+//					retweet_count = jo.getInt("retweet_count");
+//					followers_count = user.getInt("followers_count");
 
-				} catch (JSONException e) {
-					continue;
-				}
+//				} catch (JSONException e) {
+//					continue;
+//				}
 
 				/*
 				 * 2. Remove Shortened URLs

@@ -101,7 +101,7 @@ public class HBaseServlet extends HttpServlet {
 			byte[] allCol = Bytes.toBytes("mass");
 			scan.addColumn(bColFamily, allCol);
 
-			String zero13 = "0000000000000";
+			String zero13 = "0000000000";
 			String zero19 = "0000000000000000000";
 			String starttimestamp13 = zero13.substring(0, 13 - startTime.length()) + startTime;
 			String startuid19 = zero19.substring(0, 19 - startUid.length()) + startUid;

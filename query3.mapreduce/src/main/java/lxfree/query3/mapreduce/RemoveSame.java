@@ -30,10 +30,14 @@ public class RemoveSame {
 			JSONObject jo = null;
 			String tid;
 			String uid;
+			String username;
 			String date;
 			String lang;
 			String text;
-			JSONArray hashtags;
+			int favorite_count;
+			int retweet_count;
+			int followers_count;
+			
 			try{
 				//Convert to json object
 				jo = new JSONObject(line);
@@ -66,6 +70,14 @@ public class RemoveSame {
 						return;
 					}
 				}
+				
+				//check username is missing or empty
+				try {
+					username = user.get("screen_name").toString();
+				} catch (JSONException e1) {
+					return;
+				}
+				
 				//created_at field is missing or empty
 				date = jo.getString("created_at");
 				if("".equals(date)){
@@ -80,22 +92,28 @@ public class RemoveSame {
 				
 				//lang field is missing or empty
 				lang = jo.getString("lang");
-				if("".equals(lang)) {
-					return;
-				}
-
-				}catch(JSONException e) {
-					return;
-				}
-				/*
-				 * 2. Filter out invalid Language of Tweets
-				 */
-					
 				if(!LANG.equals(lang)) {
 					return;
 				}
 				
-				context.write(new Text(line), one);
+				favorite_count = jo.getInt("favorite_count");
+				retweet_count = jo.getInt("retweet_count");
+				followers_count = user.getInt("followers_count");
+
+				}catch(JSONException e) {
+					return;
+				}
+			
+				JSONObject textJo = new JSONObject();
+				textJo.put("text", text);
+				JSONObject nameJo = new JSONObject();
+				nameJo.put("username", username);
+				
+				String outkey = tid + "\t" + uid + "\t" + nameJo.toString() + "\t" 
+				+ date + "\t" + textJo.toString() + "\t" + favorite_count + "\t" 
+				+ retweet_count + "\t" + followers_count;
+				
+				context.write(new Text(outkey), one);
 			
 		}
 	}

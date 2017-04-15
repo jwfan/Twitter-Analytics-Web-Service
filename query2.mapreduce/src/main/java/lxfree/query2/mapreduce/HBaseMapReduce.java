@@ -18,7 +18,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class HBaseMapReduce {
 
-	private static String zkAddr = "172.31.39.63";
+	private static String zkAddr = "172.31.58.59";
 	
 	/**
 	 *	Mapper for habase, list hashtag, userid, keywords count
@@ -65,8 +65,6 @@ public class HBaseMapReduce {
         conf.set("hbase.master", zkAddr + ":16000");
         conf.set("hbase.zookeeper.quorum", zkAddr);
         conf.set("hbase.zookeeper.property.clientport", "2181");
-	    //add top n in the configuration
-	    conf.set("topn", args[2]);
 	    
 	    Job job = Job.getInstance(conf, "query2Habase");
 	    job.setJarByClass(HBaseMapReduce.class);
@@ -79,5 +77,4 @@ public class HBaseMapReduce {
 	    TableMapReduceUtil.initTableReducerJob("query2Habase", KeyWordsReducer.class, job);
 	    System.exit(job.waitForCompletion(true) ? 0 : 1);
 	}
-
 }

@@ -11,7 +11,7 @@ import org.apache.hadoop.mapreduce.lib.output.*;
 
 import org.apache.hadoop.util.*;
 
-public class Query3MapReduce extends Configured implements Tool{
+public class Query3Patitioner extends Configured implements Tool{
 
 	//Mapper class
 	public static class MapClass extends Mapper<Object, Text, Text, Text> {
@@ -52,7 +52,7 @@ public class Query3MapReduce extends Configured implements Tool{
 	public int run(String[] arg) throws Exception {
 		Configuration conf = getConf();
 		Job job = Job.getInstance(conf, "Query3");
-		job.setJarByClass(Query3MapReduce.class);
+		job.setJarByClass(Query3Patitioner.class);
 
 		FileInputFormat.setInputPaths(job, new Path(arg[0]));
 		FileOutputFormat.setOutputPath(job, new Path(arg[1]));
@@ -77,7 +77,7 @@ public class Query3MapReduce extends Configured implements Tool{
 	}
 
 	public static void main(String ar[]) throws Exception {
-		int res = ToolRunner.run(new Configuration(), new Query3MapReduce(), ar);
+		int res = ToolRunner.run(new Configuration(), new Query3Patitioner(), ar);
 		System.exit(0);
 	}
 
