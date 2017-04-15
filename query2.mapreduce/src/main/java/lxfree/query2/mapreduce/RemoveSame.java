@@ -33,6 +33,7 @@ public class RemoveSame {
 			String date;
 			String lang;
 			String text;
+			JSONArray hashtags;
 			try{
 				//Convert to json object
 				jo = new JSONObject(line);
@@ -80,6 +81,13 @@ public class RemoveSame {
 				//lang field is missing or empty
 				lang = jo.getString("lang");
 				if("".equals(lang)) {
+					return;
+				}
+				
+				//hashtag text (stated above) is missing or empty
+				JSONObject entities = jo.getJSONObject("entities");
+				hashtags = entities.getJSONArray("hashtags");
+				if(hashtags.length() == 0) {
 					return;
 				}
 				
