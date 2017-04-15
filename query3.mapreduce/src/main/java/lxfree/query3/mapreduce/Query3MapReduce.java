@@ -31,9 +31,9 @@ public class Query3MapReduce extends Configured implements Tool{
 		public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
 			for (Text val : values) {
 				String[] str = val.toString().split("\t");
-				String tid = str[1];
-				String v = str[2] + "\t" + str[3] + "\t" + str[4] + "\t" 
-						+ str[5] + "\t" + str[6];
+				String tid = str[2];
+				String v = str[3] + "\t" + str[4] + "\t" + str[5] + "\t" 
+						+ str[6] + "\t" + str[7];
 				context.write(new Text(tid), new Text(v));
 			}
 		}
