@@ -18,7 +18,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class HBaseMapReduce {
 
-	private static String zkAddr = "172.31.58.59";
+	private static String zkAddr = "172.31.40.115";
 	
 	/**
 	 *	Mapper for habase, list hashtag, userid, keywords count
@@ -74,7 +74,7 @@ public class HBaseMapReduce {
 	    job.setMapOutputValueClass(Text.class);
 	    FileInputFormat.addInputPath(job, new Path(args[0]));
 	    FileOutputFormat.setOutputPath(job, new Path(args[1]));
-	    TableMapReduceUtil.initTableReducerJob("query2Habase", KeyWordsReducer.class, job);
+	    TableMapReduceUtil.initTableReducerJob("twitter", KeyWordsReducer.class, job);
 	    System.exit(job.waitForCompletion(true) ? 0 : 1);
 	}
 }

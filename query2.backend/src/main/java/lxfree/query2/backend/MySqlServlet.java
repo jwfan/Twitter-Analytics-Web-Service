@@ -96,7 +96,7 @@ public class MySqlServlet extends HttpServlet {
 		        		Long userid = jo.getLong("user_id");
 		        		JSONObject cacheKW = jo.getJSONObject("keywrods");
 		        		int score = 0;
-						for (int j = 0; i < keywords.length; j++) {
+						for (int j = 0; j < keywords.length; j++) {
 							try {
 								score += cacheKW.getInt(keywords[j]);
 							} catch (JSONException e) {

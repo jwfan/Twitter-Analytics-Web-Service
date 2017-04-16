@@ -5,12 +5,10 @@ import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.PriorityQueue;
-import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -19,12 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.ResultScanner;
-import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
-import org.apache.hadoop.hbase.filter.BinaryComparator;
-import org.apache.hadoop.hbase.filter.CompareFilter;
-import org.apache.hadoop.hbase.filter.RowFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.TableName;
 
@@ -56,21 +49,22 @@ public class HBaseServlet extends HttpServlet {
 	}
 
 	@Override
-	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
-
+	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+//		String cookie = request.getHeader("cookie");
+//		System.out.println("Cookie:" + cookie);
+//		int index = cookie.indexOf(";");
+//		Long sendTime = Long.valueOf(cookie.substring(index-10,index));
+//		System.out.println("Send time:" + sendTime);
+//		System.out.println("Recieve:" + System.currentTimeMillis());
 		final String hashtag = request.getParameter("hashtag");
 		final String N = request.getParameter("N");
 		final String keywordslist = request.getParameter("list_of_key_words");
+//		System.out.println("Parse request end time:" + System.currentTimeMillis());
 		response.setStatus(200);
 		response.setContentType("text/plain;charset=UTF-8");
-		PrintWriter writer = null;
-		try {
-			writer = response.getWriter();
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
+		final PrintWriter writer = response.getWriter();
 		String result = TEAMID + "," + TEAM_AWS_ACCOUNT_ID + "\n";
-
+		
 		if ("".equals(hashtag) || "".equals(keywordslist) || !N.matches(regex)) {
 			writer.write(result);
 			writer.close();
@@ -106,7 +100,7 @@ public class HBaseServlet extends HttpServlet {
 					int score = 0;
 					for (int j = 0; j < keywords.length; j++) {
 						try {
-							score += cacheKW.getInt(keywords[j].toLowerCase());
+							score += cacheKW.getInt(keywords[j]);
 						} catch (JSONException e) {
 							continue;
 						}
@@ -181,20 +175,6 @@ public class HBaseServlet extends HttpServlet {
 					cache.put(hashtag, cacheJa);
 				} catch (IOException e1) {
 					e1.printStackTrace();
-				}
-				if (linksTable != null) {
-					try {
-						linksTable.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-				if (conn != null) {
-					try {
-						conn.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
 				}
 			}
 			if (pq.size() > 0) {

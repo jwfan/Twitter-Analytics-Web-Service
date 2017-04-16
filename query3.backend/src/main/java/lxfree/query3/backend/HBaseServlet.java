@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.PriorityQueue;
 import java.util.Map.Entry;
 
@@ -30,6 +31,7 @@ import org.apache.hadoop.hbase.filter.FilterList;
 import org.apache.hadoop.hbase.filter.RowFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.json.JSONObject;
+import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.TableName;
 
 public class HBaseServlet extends HttpServlet {
@@ -96,11 +98,7 @@ public class HBaseServlet extends HttpServlet {
 			writer.write(result);
 			writer.close();
 		} else {
-			Table linksTable = conn.getTable(TableName.valueOf(TABLENAME));
-			Scan scan = new Scan();
-			byte[] allCol = Bytes.toBytes("mass");
-			scan.addColumn(bColFamily, allCol);
-
+			// concatenate the timestamp and userid
 			String zero13 = "0000000000";
 			String zero19 = "0000000000000000000";
 			String starttimestamp13 = zero13.substring(0, 13 - startTime.length()) + startTime;
@@ -109,35 +107,43 @@ public class HBaseServlet extends HttpServlet {
 			String endtimestamp13 = zero13.substring(0, 13 - endTime.length()) + endTime;
 			String enduid19 = zero19.substring(0, 19 - endUid.length()) + endUid;
 			String endtimeuid = endtimestamp13 + enduid19;
+			
+			Table linksTable = conn.getTable(TableName.valueOf(TABLENAME));
+			Scan scan = new Scan();
+			scan.setCaching(1000);
+			scan.setStartRow(Bytes.toBytes(starttimeuid));
+			scan.setStopRow(Bytes.toBytes(endtimeuid));
+
 			Map<String, KeyWordTweets> wordsCount = new HashMap<String, KeyWordTweets>();
 			Map<String, Integer> tweetsHash = new HashMap<String, Integer>();
 			double totalNum = 0.0;
 
-			FilterList flist = new FilterList(FilterList.Operator.MUST_PASS_ALL);
-			RowFilter datefilter1 = new RowFilter(CompareFilter.CompareOp.GREATER_OR_EQUAL,
-					new BinaryComparator(starttimeuid.getBytes()));
-			RowFilter datefilter2 = new RowFilter(CompareFilter.CompareOp.LESS_OR_EQUAL,
-					new BinaryComparator(endtimeuid.getBytes()));
-			flist.addFilter(datefilter1);
-			flist.addFilter(datefilter2);
-			scan.setFilter(flist);
+//			FilterList flist = new FilterList(FilterList.Operator.MUST_PASS_ALL);
+//			RowFilter datefilter1 = new RowFilter(CompareFilter.CompareOp.GREATER_OR_EQUAL,
+//					new BinaryComparator(starttimeuid.getBytes()));
+//			RowFilter datefilter2 = new RowFilter(CompareFilter.CompareOp.LESS_OR_EQUAL,
+//					new BinaryComparator(endtimeuid.getBytes()));
+//			flist.addFilter(datefilter1);
+//			flist.addFilter(datefilter2);
+//			scan.setFilter(flist);
 			ResultScanner rs = linksTable.getScanner(scan);
 			StringBuilder sb = new StringBuilder();
 			for (Result r = rs.next(); r != null; r = rs.next()) {
-				String mass = Bytes.toString(r.getValue(bColFamily, allCol));
-				JSONObject massJo = new JSONObject(mass);
-				for (String tid : massJo.keySet()) {
-					JSONObject jo = new JSONObject(tid);
-					int impactScore = jo.getInt("impact_score");
+				NavigableMap<byte[], byte[]> familyMap =  r.getFamilyMap(bColFamily);
+				for (Entry<byte[], byte[]> familyEntry : familyMap.entrySet()) {
+					String tid = Bytes.toString(familyEntry.getKey());
+					String contentJo = Bytes.toString(familyEntry.getValue());
+					JSONObject jo = new JSONObject(contentJo);
+					int impactScore = jo.getInt("score");
 					JSONObject wordFreq = jo.getJSONObject("wordFreq");
 					String text = jo.getString("text");
 					for (String key : wordFreq.keySet()) {
 						if (wordsCount.containsKey(key)) {
 							wordsCount.get(key).addTweetsNum();
-							wordsCount.get(key).addTweet(new Tweet(key, text, impactScore, wordFreq.getInt(key)));
+							wordsCount.get(key).addTweet(new Tweet(tid, text, impactScore, wordFreq.getInt(key)));
 						} else {
 							KeyWordTweets list = new KeyWordTweets(1);
-							list.addTweet(new Tweet(key, text, impactScore, wordFreq.getInt(key)));
+							list.addTweet(new Tweet(tid, text, impactScore, wordFreq.getInt(key)));
 							wordsCount.put(key, list);
 						}
 					}

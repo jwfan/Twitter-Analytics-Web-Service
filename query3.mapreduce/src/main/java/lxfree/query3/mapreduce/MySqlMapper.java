@@ -101,7 +101,7 @@ public class MySqlMapper {
 				String tid = str[0];
 				String uid = str[1];
 				String date = str[3];
-				String text = str[4];
+				String textJob = str[4];
 				String time;
 				int favorite_count = Integer.valueOf(str[5]);
 				int retweet_count = Integer.valueOf(str[6]);
@@ -191,6 +191,7 @@ public class MySqlMapper {
 				/*
 				 * 2. Remove Shortened URLs
 				 */
+				String text = new JSONObject(textJob).getString("text");
 				String shortText = text.replaceAll(SHORTURL_REGEX, "");
 
 				/*

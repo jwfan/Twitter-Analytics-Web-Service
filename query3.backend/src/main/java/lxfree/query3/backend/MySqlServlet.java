@@ -35,89 +35,34 @@ public class MySqlServlet extends HttpServlet {
 	private static String TABLENAME = "q3_table";
 	private final static String regex = "[0-9]+";
 	private static Map<String, Integer> bannedWords = new HashMap<String, Integer>();
-	private static String shardBase1="00013999096180000000000024283520";
-	private static String shardBase2="00014825227340000000000227019820";
-	private static Integer roundRobin1=0;
-	private static Integer roundRobin2=0;
-	private static Integer roundRobin3=0;
-	/* Whether each part of the database need to be queried */
-	private static boolean q1Flag=false;
-	private static boolean q2Flag=false;
-	private static boolean q3Flag=false;
 	private static ConcurrentHashMap<String, KeyWordTweets> wordsCount = new ConcurrentHashMap<String, KeyWordTweets>();
 	private static Double totalNum=0.0;
-	/* Whether each part of the database has been queried */
+	/* Six sharding databases */
+	private static Connection conn1;
+	private static Connection conn2;
+	private static Connection conn3;
+	private static Connection conn4;
+	private static Connection conn5;
+	private static Connection conn6;
+	/* Whether each part of the database has finished queries */
 	private static boolean q1Done=false;
 	private static boolean q2Done=false;
 	private static boolean q3Done=false;
 	private static Object lock;
 	
 	/**
-	 * Check whether each part of the database needed to be queried
-	 * and set the corresponding flag
+	 * Query the 3 sub-databases
 	 */
-	public void setQryFlag(String startTUid, String endTUid){
-		/* the 1st part of the database */
-		if(startTUid.compareTo(shardBase1)<0){
-			q1Flag=true;
-			/* the 2nd part of the database */
-			if(endTUid.compareTo(shardBase1)<0){
-				q2Flag=false;
-				/* the 3rd part of the database */
-				q3Flag=false;
-			}else{
-				q2Flag=true;
-				/* the 3rd part of the database */
-				if(endTUid.compareTo(shardBase2)<0){
-					q3Flag=false;
-				}else{
-					q3Flag=true;
-				}
-			}
-		}else{
-			q1Flag=false;
-			/* the 2nd part of the database */
-			if(startTUid.compareTo(shardBase2)<0){
-				q2Flag=true;
-				/* the 3rd part of the database */
-				if(endTUid.compareTo(shardBase2)<0){
-					q3Flag=false;
-				}else{
-					q3Flag=true;
-				}
-			}else{
-				q2Flag=false;
-				/* the 3rd part of the database */
-				q3Flag=true;
-			}
-		}
-	}
-	
-	/**
-	 * Query the 3 sub-databases according to query flags
-	 */
-	public void qryDB(final String startTUid, final String endTUid){
+	public void qryDB(final String startTime, final String endTime, final String startUid, final String endUid){
 		q1Done=false;
 		q2Done=false;
 		q3Done=false;
 		/* Query the 1st sub-database */
 		Thread t1 = new Thread(new Runnable() {
 			public void run() {
-				if(q1Flag==false){
-					/* No need to query sub-database 1 */
-					synchronized(lock){
-						q1Done=true;
-						lock.notifyAll();
-					}
-				}else{
-					/* Check the query range */
-					if(q2Flag==true){
-						qrySingleDB(startTUid, shardBase1, roundRobin1);
-						roundRobin1=(roundRobin1+1)%2;
-					}else{
-						qrySingleDB(startTUid, endTUid, roundRobin1);
-						roundRobin1=(roundRobin1+1)%2;
-					}
+				synchronized(lock){
+					q1Done=true;
+					lock.notifyAll();
 				}
 				System.out.println("sub-db 1 query done.");
 			}
@@ -126,27 +71,9 @@ public class MySqlServlet extends HttpServlet {
 		/* Query the 2nd sub-database */
 		Thread t2 = new Thread(new Runnable() {
 			public void run() {
-				if(q2Flag==false){
-					/* No need to query sub-database 1 */
-					synchronized(lock){
-						q2Done=true;
-						lock.notifyAll();
-					}
-				}else{
-					/* Check the query range */
-					if(q1Flag&&q3Flag){
-						qrySingleDB(startTUid, endTUid, roundRobin2);
-						roundRobin2=(roundRobin2+1)%2+2;
-					}else if(q1Flag&&!q3Flag){
-						qrySingleDB(shardBase1, endTUid, roundRobin2);
-						roundRobin2=(roundRobin2+1)%2+2;
-					}else if(!q1Flag&&q3Flag){
-						qrySingleDB(startTUid, shardBase2, roundRobin2);
-						roundRobin2=(roundRobin2+1)%2+2;
-					}else{
-						qrySingleDB(startTUid, endTUid, roundRobin2);
-						roundRobin2=(roundRobin2+1)%2+2;
-					}
+				synchronized(lock){
+					q2Done=true;
+					lock.notifyAll();
 				}
 				System.out.println("sub-db 2 query done.");
 			}
@@ -154,21 +81,9 @@ public class MySqlServlet extends HttpServlet {
 		
 		Thread t3 = new Thread(new Runnable() {
 			public void run() {
-				if(q3Flag==false){
-					/* No need to query sub-database 1 */
-					synchronized(lock){
-						q3Done=true;
-						lock.notifyAll();
-					}
-				}else{
-					/* Check the query range */
-					if(q2Flag){
-						qrySingleDB(shardBase2, endTUid, roundRobin3);
-						roundRobin3=(roundRobin3+1)%2+4;
-					}else{
-						qrySingleDB(startTUid, endTUid, roundRobin2);
-						roundRobin3=(roundRobin3+1)%2+4;
-					}
+				synchronized(lock){
+					q3Done=true;
+					lock.notifyAll();
 				}
 				System.out.println("sub-db 3 query done.");
 			}
@@ -181,19 +96,19 @@ public class MySqlServlet extends HttpServlet {
 	/**
 	 * query a single sub-database
 	 */
-	public void qrySingleDB(String startTUid, String endTUid, int choose){
+	public void qrySingleDB(String startTime, String endTime, String startUid, String endUid, int choose){
 		Connection conn=null;
 		PreparedStatement stmt = null;
 		try {
-			conn = ConnectionManager.getConnection(choose);
-			String sql = "SELECT tu_id, censored_text, impact_score, keywords FROM " + TABLENAME
-					 	 + " WHERE tu_id BETWEEN ? AND ?";
+			String sql = "SELECT twitter_id, censored_text, impact_score, keywords FROM " + TABLENAME
+					+ " WHERE time_stamp>=? AND time_stamp<=? and user_id>=? and user_id<=?";
 			stmt = conn.prepareStatement(sql);
-			stmt.setString(1, startTUid);
-			stmt.setString(2, endTUid);
+			stmt.setString(1, startTime);
+			stmt.setString(2, endTime);
+			stmt.setString(3, startUid);
+			stmt.setString(4, endUid);
 			// remove replicated tweets
 			ResultSet rs = stmt.executeQuery();
-			
 			while (rs.next()) {
 				String tweet = null;
 				JSONObject text = new JSONObject(rs.getString("text"));
@@ -215,7 +130,7 @@ public class MySqlServlet extends HttpServlet {
 					totalNum++;
 				}
 			}
-		} catch (ClassNotFoundException | SQLException e) {
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		
@@ -263,26 +178,26 @@ public class MySqlServlet extends HttpServlet {
 			writer.write(result);
 			writer.close();
 		} else {
-			String zero13 = "0000000000000";
-			String zero19 = "0000000000000000000";
-			String timestamp13 = zero13.substring(0, 13 - startTime.length()) + startTime;
-			String uid19 = zero19.substring(0, 19 - startUid.length()) + startUid;
-			final String startTUid = timestamp13+uid19;
-			timestamp13 = zero13.substring(0, 13 - endTime.length()) + endTime;
-			uid19 = zero19.substring(0, 19 - endUid.length()) + endUid;
-			final String endTUid = timestamp13+uid19;
+//			String zero13 = "0000000000000";
+//			String zero19 = "0000000000000000000";
+//			String timestamp13 = zero13.substring(0, 13 - startTime.length()) + startTime;
+//			String uid19 = zero19.substring(0, 19 - startUid.length()) + startUid;
+//			final String startTUid = timestamp13+uid19;
+//			timestamp13 = zero13.substring(0, 13 - endTime.length()) + endTime;
+//			uid19 = zero19.substring(0, 19 - endUid.length()) + endUid;
+//			final String endTUid = timestamp13+uid19;
 			wordsCount = new ConcurrentHashMap<String, KeyWordTweets>();
 			Map<String, Integer> tweetsHash = new HashMap<String, Integer>();
 			totalNum = 0.0;
 			/* 
 			 * set query flag 
 			 */
-			setQryFlag(startTUid, endTUid);
+//			setQryFlag(startTime, endTime, startUid, endUid);
 			try {
 				/*
 				 * Query the 3 sub-databases
 				 */
-				qryDB(startTUid, endTUid);				
+				qryDB(startTime, endTime, startUid, endUid);				
 				//Store the top n1 topic words
 				PriorityQueue<KeyWordScore> pq = new PriorityQueue<KeyWordScore>(11, new Comparator<KeyWordScore>() {
 					@Override
