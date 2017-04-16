@@ -25,7 +25,7 @@ public class MySqlServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static Connection conn1;
 	private static Connection conn2;
-	private static Connection conn3;
+	//private static Connection conn3;
 	private static int choose=0;
 	private static String TEAMID = "LXFreee";
 	private static String TEAM_AWS_ACCOUNT_ID = "7104-6822-7247";
@@ -41,7 +41,7 @@ public class MySqlServlet extends HttpServlet {
 			//System.out.println("Connect to database 1 done.");
 			conn2 = ConnectionManager.getConnection(1);
 			//System.out.println("Connect to database 2 done.");
-			conn3 = ConnectionManager.getConnection(2);
+			//conn3 = ConnectionManager.getConnection(2);
 			//System.out.println("Connect to database 3 done.");
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -123,12 +123,16 @@ public class MySqlServlet extends HttpServlet {
 		        	switch(choose){
 		        	case 0:stmt = conn1.prepareStatement(sql);break;
 		        	case 1:stmt = conn2.prepareStatement(sql);break;
-		        	case 2:stmt = conn3.prepareStatement(sql);break;
+		        	//case 2:stmt = conn3.prepareStatement(sql);break;
 		        	default:
-		        		stmt=conn1.prepareStatement(sql);
+		        		if(choose%2==0)
+		        			stmt=conn1.prepareStatement(sql);
+		        		else
+		        			stmt=conn2.prepareStatement(sql);
 		        	}
 		        	//System.out.println("Choose database " + choose);
-		        	choose=(choose+1)%3;
+		        	//choose=(choose+1)%3;
+		        	choose=(choose+1)%2;
 		        	stmt.setString(1, hashtag);
 		        	ResultSet rs = stmt.executeQuery();
 		        	JSONArray cacheJa = new JSONArray();

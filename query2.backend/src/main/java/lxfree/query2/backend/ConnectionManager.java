@@ -22,18 +22,18 @@ public class ConnectionManager {
     private static final String DB_NAME = "q2_db";
     /* The DNS address of 3 replica mysql databases
      * remember to contain '/' at the end of the address! */
-    private static final String DNS1="ec2-34-204-2-194.compute-1.amazonaws.com/";
-    private static final String DNS2="ec2-54-89-228-84.compute-1.amazonaws.com/";
-    private static final String DNS3="ec2-184-72-117-91.compute-1.amazonaws.com/";
+    private static final String DNS1="ec2-34-201-45-92.compute-1.amazonaws.com/";
+    private static final String DNS2="ec2-34-201-45-92.compute-1.amazonaws.com/";
+    //private static final String DNS3="ec2-174-129-135-117.compute-1.amazonaws.com/";
     private static final String URL1 = "jdbc:mysql://" + DNS1 + DB_NAME + "?useSSL=false";
     private static final String URL2 = "jdbc:mysql://" + DNS2 + DB_NAME + "?useSSL=false";
-    private static final String URL3 = "jdbc:mysql://" + DNS3 + DB_NAME + "?useSSL=false";
+    //private static final String URL3 = "jdbc:mysql://" + DNS3 + DB_NAME + "?useSSL=false";
     private static String user="root";
     private static String pwd="CClxfreee";
     /* Connection to 3 replica mysql databases */
     private static Connection conn1;
     private static Connection conn2;
-    private static Connection conn3;
+    //private static Connection conn3;
     
     //HBase Configuration
     private static String zkAddr = "172.31.64.199";
@@ -52,7 +52,7 @@ public class ConnectionManager {
 //        pwd=System.getProperty("passowrd");
         conn1 = DriverManager.getConnection(URL1, user, pwd);
         conn2 = DriverManager.getConnection(URL2, user, pwd);
-        conn3 = DriverManager.getConnection(URL3, user, pwd);
+        //conn3 = DriverManager.getConnection(URL3, user, pwd);
     }
     
     /**
@@ -62,13 +62,14 @@ public class ConnectionManager {
      * @throws SQLException
      */
     public static Connection getConnection(int choose) throws ClassNotFoundException, SQLException {
-    	if(conn1 == null || conn2==null || conn3==null) {
+    	if(conn1 == null || conn2==null) {
+    	//if(conn1 == null || conn2==null || conn3==null) {
     		initializeConnection();
     	}
     	switch(choose){
     	case 0: return conn1;
     	case 1: return conn2;
-    	case 2: return conn3;
+    	//case 2: return conn3;
     	}
     	return conn1;
     }
