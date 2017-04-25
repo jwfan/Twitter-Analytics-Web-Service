@@ -4,8 +4,9 @@ import org.xnio.Options;
 
 import io.undertow.Handlers;
 import io.undertow.Undertow;
-//import io.undertow.UndertowOptions;
 import query2.Query2Handler;
+//import io.undertow.UndertowOptions;
+
 
 /**
  * The undertow server
@@ -14,7 +15,7 @@ import query2.Query2Handler;
  */
 public class UndertowServer {
 
-	private static int ioThread=20;
+	private static int ioThread=16;
 	private static int workerThread=ioThread*8;
 	
 	public static void main(String[] args){
