@@ -9,11 +9,17 @@ import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.Headers;
 
+/**
+ * HttpHandler for Query 1
+ * @author kayjade
+ *
+ */
 public class Query1Handler implements HttpHandler {
 
 	private static final String TEAMID = "LXFreee";
 	private static final String TEAM_AWS_ACCOUNT_ID = "7104-6822-7247";
 	private static final String X = "12389084059184098308123098579283204880956800909293831223134798257496372124879237412193918239183928140";
+	/** query parameters map */
 	private Map<String,Deque<String>> qryParams;
 	
 	@Override
