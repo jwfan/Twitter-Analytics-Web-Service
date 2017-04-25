@@ -37,7 +37,11 @@ public class MySqlServletQuery2 extends HttpServlet {
 	public MySqlServletQuery2() {
 		try {
 			conn1 = ConnectionManager.getConnection(0);
+			//System.out.println("Connect to database 1 done.");
 			conn2 = ConnectionManager.getConnection(1);
+			//System.out.println("Connect to database 2 done.");
+			//conn3 = ConnectionManager.getConnection(2);
+			//System.out.println("Connect to database 3 done.");
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (SQLException e) {
@@ -48,11 +52,9 @@ public class MySqlServletQuery2 extends HttpServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
 			throws ServletException, IOException {
-		System.out.println("Received Request:" + System.currentTimeMillis());
 		final String hashtag = request.getParameter("hashtag");
 		final String N = request.getParameter("N");
 		final String keywordslist = request.getParameter("list_of_key_words");
-		System.out.println("End parsing parameter:" + System.currentTimeMillis());
 		response.setStatus(200);
 		response.setContentType("text/plain;charset=UTF-8");
 		final PrintWriter writer = response.getWriter();
@@ -69,7 +71,7 @@ public class MySqlServletQuery2 extends HttpServlet {
 			PriorityQueue<KVPair> pq = new PriorityQueue<KVPair>(11, new Comparator<KVPair>() {
 				@Override
 				public int compare(KVPair o1, KVPair o2) {
-					if (!o1.getValue().equals(o2.getValue())) {
+					if (o1.getValue().equals(o2.getValue())) {
 						return o1.getValue() - o2.getValue();// generate the min heap for frequency
 					} else {
 						if (o2.getKey() > o1.getKey()) {// generate the max heap for id
@@ -90,7 +92,7 @@ public class MySqlServletQuery2 extends HttpServlet {
 		        	for(int i = 0; i < cacheRes.length(); i++) {
 		        		JSONObject jo = cacheRes.getJSONObject(i);
 		        		Long userid = jo.getLong("user_id");
-		        		JSONObject cacheKW = jo.getJSONObject("keywords");
+		        		JSONObject cacheKW = jo.getJSONObject("keywrods");
 		        		int score = 0;
 						for (int j = 0; j < keywords.length; j++) {
 							try {
@@ -107,7 +109,7 @@ public class MySqlServletQuery2 extends HttpServlet {
 							if (peek.getValue() < entry.getValue()) {
 								pq.poll();
 								pq.add(entry);
-							} else if (peek.getValue().equals(entry.getValue()) && peek.getKey() > entry.getKey()) {
+							} else if (peek.getValue() == entry.getValue() && peek.getKey() > entry.getKey()) {
 								pq.poll();
 								pq.add(entry);
 							}
@@ -127,9 +129,7 @@ public class MySqlServletQuery2 extends HttpServlet {
 		        	}
 		        	choose=(choose+1)%2;
 		        	stmt.setString(1, hashtag);
-		        	System.out.println("Start query data:" + System.currentTimeMillis());
 		        	ResultSet rs = stmt.executeQuery();
-		        	System.out.println("End query data:" + System.currentTimeMillis());
 		        	JSONArray cacheJa = new JSONArray();
 					while (rs.next()) {
 						int score = 0;
@@ -138,7 +138,7 @@ public class MySqlServletQuery2 extends HttpServlet {
 						JSONObject jo = new JSONObject(rs.getString("keywords"));
 						JSONObject cacheObj = new JSONObject();
 						cacheObj.put("user_id", userid);
-						cacheObj.put("keywords", jo);
+						cacheObj.put("keywrods", jo);
 						cacheJa.put(cacheObj);
 						for (int i = 0; i < keywords.length; i++) {
 							try {
@@ -161,7 +161,6 @@ public class MySqlServletQuery2 extends HttpServlet {
 							}
 						}
 					}
-					System.out.println("End parsing response of DB:" + System.currentTimeMillis());
 		        }
 				if (pq.size() > 0) {
 					StringBuilder res = new StringBuilder();
@@ -172,9 +171,7 @@ public class MySqlServletQuery2 extends HttpServlet {
 					}
 					result += res.substring(0, res.length() - 1) + "\n";
 				}
-				System.out.println("Start wwrite result:" + System.currentTimeMillis());
 				writer.write(result);
-				System.out.println("End write result:" + System.currentTimeMillis());
 				writer.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
