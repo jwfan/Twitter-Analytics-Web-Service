@@ -50,21 +50,6 @@ public class MySqlBackend extends AbstractVerticle {
 	private static Double totalNum = 0.0;
 	private static int choose = 0;
 
-	public MySqlBackend() {
-		try {
-			conn1 = ConnectionManager.getMySqlConnections(0);
-			// System.out.println("Connect to database 1 done.");
-			conn2 = ConnectionManager.getMySqlConnections(1);
-			// System.out.println("Connect to database 2 done.");
-			// conn3 = ConnectionManager.getConnection(2);
-			// System.out.println("Connect to database 3 done.");
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-
 	/**
 	 * query a single sub-database
 	 */
@@ -72,7 +57,7 @@ public class MySqlBackend extends AbstractVerticle {
 		PreparedStatement stmt = null;
 		try {
 			String sql = "SELECT twitter_id, censored_text, impact_score, keywords FROM " + TABLENAME
-					+ " WHERE time_stamp>=? AND time_stamp<=? and user_id>=? and user_id<=?";
+					+ " USE INDEX (time_index) WHERE time_stamp>=? AND time_stamp<=? and user_id>=? and user_id<=?";
 			/* Decide to which database to query */
 			switch (choose) {
 			case 0:
@@ -127,7 +112,20 @@ public class MySqlBackend extends AbstractVerticle {
 	public void start(Future<Void> fut) {
 		Vertx vertx = Vertx.vertx(new VertxOptions().setWorkerPoolSize(40));
 		Router router = Router.router(vertx);
-		HttpServerOptions options = new HttpServerOptions();
+		//HttpServerOptions options = new HttpServerOptions();
+		
+		try {
+			conn1 = ConnectionManager.getMySqlConnections(0);
+			// System.out.println("Connect to database 1 done.");
+			conn2 = ConnectionManager.getMySqlConnections(1);
+			// System.out.println("Connect to database 2 done.");
+			// conn3 = ConnectionManager.getConnection(2);
+			// System.out.println("Connect to database 3 done.");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		router.route("/q3").handler(routingContext -> {
 			HttpServerResponse response = routingContext.response();
 			String startTime = routingContext.request().getParam("time_start");
