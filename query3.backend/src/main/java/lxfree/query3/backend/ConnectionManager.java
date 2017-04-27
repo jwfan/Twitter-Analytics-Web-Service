@@ -72,9 +72,14 @@ public class ConnectionManager {
      * @throws ClassNotFoundException
      * @throws SQLException
      */
-    public static Connection getMySqlConnections() throws ClassNotFoundException, SQLException {
+    public static Connection getMySqlConnections(int choose) throws ClassNotFoundException, SQLException {
     	if(conn1 == null || conn2==null || conn3==null || conn4 == null || conn5==null || conn6 ==null) {
     		initializeConnection();
+    	}
+    	switch(choose){
+    	case 0: return conn1;
+    	case 1: return conn2;
+    	//case 2: return conn3;
     	}
     	return conn1;
     }
