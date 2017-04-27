@@ -11,16 +11,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 
 public class VertexServer extends AbstractVerticle {
@@ -31,9 +29,10 @@ public class VertexServer extends AbstractVerticle {
 	private static Connection conn1;
 	private static Connection conn2;
 	private static int choose=0;
-	private static String TABLENAME = "q2_table";
+	private static String TABLENAME_Q2 = "q2_table";
 	private final static String regex = "[0-9]+";
-	private static Map<String, JSONArray> cache = new HashMap<String, JSONArray>();
+	private static Map<String, JsonArray> cache = new HashMap<String, JsonArray>();
+	
 	
 
 	@Override
@@ -201,16 +200,16 @@ public class VertexServer extends AbstractVerticle {
 				PreparedStatement stmt = null;
 				try {
 			        if(cache.containsKey(hashtag)) {
-			        	JSONArray cacheRes = cache.get(hashtag);
-			        	for(int i = 0; i < cacheRes.length(); i++) {
-			        		JSONObject jo = cacheRes.getJSONObject(i);
+			        	JsonArray cacheRes = cache.get(hashtag);
+			        	for(int i = 0; i < cacheRes.size(); i++) {
+			        		JsonObject jo = cacheRes.getJsonObject(i);
 			        		Long userid = jo.getLong("user_id");
-			        		JSONObject cacheKW = jo.getJSONObject("keywrods");
+			        		JsonObject cacheKW = jo.getJsonObject("keywrods");
 			        		int score = 0;
 							for (int j = 0; j < keywords.length; j++) {
 								try {
-									score += cacheKW.getInt(keywords[j]);
-								} catch (JSONException e) {
+									score += cacheKW.getInteger(keywords[j]);
+								} catch (Exception e) {
 									continue;
 								}
 							}
@@ -229,7 +228,7 @@ public class VertexServer extends AbstractVerticle {
 							}
 			        	}
 			        } else {
-			        	String sql = "SELECT hashtag, user_id, keywords FROM " + TABLENAME + " where hashtag=?";
+			        	String sql = "SELECT hashtag, user_id, keywords FROM " + TABLENAME_Q2 + " where hashtag=?";
 			        	/* Decide to which database to query */
 			        	switch(choose){
 			        	case 0:stmt = conn1.prepareStatement(sql);break;
@@ -243,20 +242,20 @@ public class VertexServer extends AbstractVerticle {
 			        	choose=(choose+1)%2;
 			        	stmt.setString(1, hashtag);
 			        	ResultSet rs = stmt.executeQuery();
-			        	JSONArray cacheJa = new JSONArray();
+			        	JsonArray cacheJa = new JsonArray();
 						while (rs.next()) {
 							int score = 0;
 							Long userid = Long.valueOf(rs.getString("user_id"));
 							//get calculated keywords count from database
-							JSONObject jo = new JSONObject(rs.getString("keywords"));
-							JSONObject cacheObj = new JSONObject();
+							JsonObject jo = new JsonObject(rs.getString("keywords"));
+							JsonObject cacheObj = new JsonObject();
 							cacheObj.put("user_id", userid);
 							cacheObj.put("keywrods", jo);
-							cacheJa.put(cacheObj);
+							cacheJa.add(cacheObj);
 							for (int i = 0; i < keywords.length; i++) {
 								try {
-									score += jo.getInt(keywords[i]);
-								} catch (JSONException e) {
+									score += jo.getInteger(keywords[i]);
+								} catch (Exception e) {
 									continue;
 								}
 							}
@@ -298,10 +297,6 @@ public class VertexServer extends AbstractVerticle {
 				}
 			}
 		});
-		
-		
-		
-		
 		
 		
 		vertx.createHttpServer().requestHandler(router::accept).listen(config().getInteger("http.port", 80), "0.0.0.0",
